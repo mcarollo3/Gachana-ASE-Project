@@ -1,19 +1,67 @@
 version: "3.8"
 services:
-  gachana_db:
+  user_db:
     image: mysql:latest
-    container_name: gachana_db
+    container_name: user_db
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: Gachana_DB
+      MYSQL_DATABASE: UserService
       MYSQL_USER: gachana
       MYSQL_PASSWORD: root
     ports:
       - "3307:3306"
     volumes:
-      - db_data:/var/lib/mysql
-      - ./config_files/gachana_initDB.sql:/docker-entrypoint-initdb.d/gachana_initDB.sql
+      - user_data:/var/lib/mysql
+      - ./config_files/databases/user_service_db.sql:/docker-entrypoint-initdb.d/user_service_db.sql
+
+  gacha_db:
+    image: mysql:latest
+    container_name: gacha_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: GachaService
+      MYSQL_USER: gachana
+      MYSQL_PASSWORD: root
+    ports:
+      - "3308:3306"
+    volumes:
+      - gacha_data:/var/lib/mysql
+      - ./config_files/databases/gacha_service_db.sql:/docker-entrypoint-initdb.d/gacha_service_db.sql
+
+  market_db:
+    image: mysql:latest
+    container_name: market_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: MarketService
+      MYSQL_USER: gachana
+      MYSQL_PASSWORD: root
+    ports:
+      - "3309:3306"
+    volumes:
+      - market_data:/var/lib/mysql
+      - ./config_files/databases/market_service_db.sql:/docker-entrypoint-initdb.d/market_service_db.sql
+
+  transaction_db:
+    image: mysql:latest
+    container_name: transaction_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: TransactionService
+      MYSQL_USER: gachana
+      MYSQL_PASSWORD: root
+    ports:
+      - "3310:3306"
+    volumes:
+      - transaction_data:/var/lib/mysql
+      - ./config_files/databases/transaction_service_db.sql:/docker-entrypoint-initdb.d/transaction_service_db.sql
 
 volumes:
-  db_data:
-    name: gachana_db_volume
+  user_data:
+    name: user_db_volume
+  gacha_data:
+    name: gacha_db_volume
+  market_data:
+    name: market_db_volume
+  transaction_data:
+    name: transaction_db_volume
