@@ -56,6 +56,27 @@ services:
       - transaction_data:/var/lib/mysql
       - ./config_files/databases/transaction_service_db.sql:/docker-entrypoint-initdb.d/transaction_service_db.sql
 
+  user_service:
+    build:
+      context: ./backend/user_service
+    container_name: user_service
+    ports:
+      - "5000:5000"
+    networks:
+      - api_network
+
+  nginx:
+    image: nginx:latest
+    container_name: api_gateway
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - user_service
+    networks:
+      - api_network
+
 volumes:
   user_data:
     name: user_db_volume
@@ -65,3 +86,7 @@ volumes:
     name: market_db_volume
   transaction_data:
     name: transaction_db_volume
+
+networks:
+  api_network:
+    driver: bridge
