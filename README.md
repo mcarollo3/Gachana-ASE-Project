@@ -2,7 +2,6 @@
 
 - Create a .venv
 - aggiungere timeout alle chiamate dell'api gateway per i servizi per gestire WobbleServiceInteraction
-  ''' conf
 
   # Timeout per la connessione al backend (microservizio)
 
@@ -20,5 +19,4 @@
             return 504 '{"error": "Gateway Timeout. The service took too long to respond."}';
         }
 
-  '''
   fare la gestione anche tramite api.
