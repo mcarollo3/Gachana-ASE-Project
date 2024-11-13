@@ -13,6 +13,8 @@ services:
     volumes:
       - user_data:/var/lib/mysql
       - ./config_files/databases/user_service_db.sql:/docker-entrypoint-initdb.d/user_service_db.sql
+    networks:
+      - api_network
 
   gacha_db:
     image: mysql:latest
@@ -27,6 +29,8 @@ services:
     volumes:
       - gacha_data:/var/lib/mysql
       - ./config_files/databases/gacha_service_db.sql:/docker-entrypoint-initdb.d/gacha_service_db.sql
+    networks:
+      - api_network
 
   market_db:
     image: mysql:latest
@@ -41,6 +45,8 @@ services:
     volumes:
       - market_data:/var/lib/mysql
       - ./config_files/databases/market_service_db.sql:/docker-entrypoint-initdb.d/market_service_db.sql
+    networks:
+      - api_network
 
   transaction_db:
     image: mysql:latest
@@ -55,11 +61,18 @@ services:
     volumes:
       - transaction_data:/var/lib/mysql
       - ./config_files/databases/transaction_service_db.sql:/docker-entrypoint-initdb.d/transaction_service_db.sql
+    networks:
+      - api_network
 
   user_service:
     build:
       context: ./backend/user_service
     container_name: user_service
+    environment:
+      DB_HOST: "user_db"
+      DB_NAME: "UserService"
+      DB_USER: "gachana"
+      DB_PASSWORD: "root"
     ports:
       - "5000:5000"
     networks:

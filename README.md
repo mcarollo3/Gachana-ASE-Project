@@ -20,3 +20,33 @@
         }
 
   fare la gestione anche tramite api.
+
+da aggiungere al default
+
+location /gacha/ {
+proxy_pass http://gacha_service:5001/;
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+    location /market/ {
+        proxy_pass http://market_service:5002/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /transaction/ {
+        proxy_pass http://transaction_service:5003/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+per usare l'apiGateway le chiamate devono essere:
+
+http://localhost/nomeServizio/endpoint :)
