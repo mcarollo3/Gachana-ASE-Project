@@ -78,6 +78,20 @@ services:
     networks:
       - api_network
 
+  gacha_service:
+    build:
+      context: ./backend/gacha_service
+    container_name: gacha_service
+    environment:
+      DB_HOST: "gacha_db"
+      DB_NAME: "GachaService"
+      DB_USER: "gachana"
+      DB_PASSWORD: "root"
+    ports:
+      - "5001:5001"
+    networks:
+      - api_network
+
   nginx:
     image: nginx:latest
     container_name: api_gateway
