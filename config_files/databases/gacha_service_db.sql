@@ -46,3 +46,6 @@ INSERT INTO Gacha (name, description, id_img, rarity) VALUES
 ('Rafiki', 'A wise and mystical baboon who serves as a guide to Simba, offering spiritual wisdom and comic relief through his unique insights. (The Lion King)', 'rafiki', 'Uncommon'),
 ('Simba', 'A lion who faces the loss of his father and ultimately embraces his destiny to become king, learning courage and responsibility along the way. (The Lion King)', 'simba', 'Uncommon'),
 ('Sven', 'A loyal and gentle reindeer with a playful side, Sven is devoted to his best friend Kristoff, often providing silent yet comedic support. (Frozen)', 'sven', 'Uncommon');
+
+INSERT INTO Collection (user_id, gacha_id, quantity) VALUES
+(1, 1, 1);
