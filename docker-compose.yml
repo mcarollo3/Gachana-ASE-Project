@@ -73,8 +73,11 @@ services:
       DB_NAME: "UserService"
       DB_USER: "gachana"
       DB_PASSWORD: "root"
+      SECRET_KEY: ${SECRET_KEY}
     ports:
       - "5000:5000"
+    volumes:
+      - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
     networks:
       - api_network
 
@@ -87,8 +90,11 @@ services:
       DB_NAME: "GachaService"
       DB_USER: "gachana"
       DB_PASSWORD: "root"
+      SECRET_KEY: ${SECRET_KEY}
     ports:
       - "5001:5001"
+    volumes:
+      - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
     networks:
       - api_network
 

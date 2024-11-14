@@ -1,6 +1,7 @@
 from flask import Flask, json, request, make_response, jsonify
 import mysql.connector
 import os
+from decode_auth_token import decode_token, token_required
 
 app = Flask(__name__)
 
