@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+        "@mui/*": ["node_modules/@mui/*"]
+      }
+    },
+    "include": ["src/**/*"]
+  }
