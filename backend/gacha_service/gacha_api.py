@@ -133,5 +133,87 @@ def get_available_gacha(gacha_id):
         return jsonify({"message": "User owns every gacha."}), 200
     return jsonify(available_gacha), 200
 
+@app.route('/gachas', methods=['GET'])
+@token_required(role_required='Admin')
+def get_gachas():
+
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    query = """
+    SELECT id, name, description, id_img, rarity
+    FROM Gacha;
+    """
+    cursor.execute(query)
+    gachas = cursor.fetchall()
+    cursor.close()
+    connection.close()
+
+    return jsonify(gachas), 200
+
+@app.route('/gachas/<int:gacha_id>', methods=['GET'])
+@token_required(role_required='Admin')
+def get_gacha(gacha_id):
+
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    query = """
+    SELECT id, name, description, id_img, rarity
+    FROM Gacha
+    WHERE id = %s;
+    """
+    cursor.execute(query, (gacha_id, ))
+    gacha = cursor.fetchall()
+    cursor.close()
+    connection.close()
+
+    return jsonify(gacha), 200
+
+@app.route('/gachas/<int:gacha_id>', methods=['PATCH'])     
+@token_required(role_required='Admin')
+def patch_gacha(gacha_id):
+
+    data = request.get_json()
+
+    if not data.get('name') and not data.get('rarity') and not data.get('description') and not data.get('id_img'):
+        return jsonify({'message': 'No data provided for update'}), 400
+
+    name = data.get('name')
+    rarity = data.get('rarity')
+    description = data.get('description')
+    id_img = data.get('id_img')
+
+    query = "UPDATE Gacha SET "
+    params = []
+
+    if name:
+        query += "name = %s, "
+        params.append(name)
+    if rarity:
+        query += "rarity = %s, "
+        params.append(rarity)
+    if description:
+        query += "description = %s, "
+        params.append(description)
+    if id_img:
+        query += "id_img = %s, "
+        params.append(id_img)
+
+    query = query.rstrip(', ')
+
+    query += " WHERE id = %s"
+    params.append(gacha_id)
+
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute(query, tuple(params))
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return jsonify({'message': 'Gacha modified successfully'}), 200
+
+# TODO: remove gacha
+# how to handle players who on that gacha??     
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)
