@@ -50,3 +50,5 @@ creare un file .env (stesso livello del compose) ed inserire una
 SECRET_KEY=la_tua_chiave_segreta
 
 usa https://jwtsecret.com/generate con 64
+
+[read-only link to pdf report](https://www.overleaf.com/read/bsmcxmqsgxvb#6c8454)
