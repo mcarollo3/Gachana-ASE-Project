@@ -39,8 +39,9 @@ da aggiungere al default
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-come implementare la rimozione di gacha da parte degli admin?
-cosa succede se un utente ha un gacha che viene rimosso???
+- come implementare la rimozione di gacha da parte degli admin?
+  cosa succede se un utente ha un gacha che viene rimosso???
+- implementare logout per admin e player?
 
 per usare l'apiGateway le chiamate devono essere:
 

@@ -2,6 +2,7 @@ from flask import Flask, json, request, make_response, jsonify
 import mysql.connector
 import os
 from decode_auth_token import decode_token, token_required
+import random
 
 app = Flask(__name__)
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -24,18 +25,18 @@ def get_user_collection():
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
     if not user_data:
-        return jsonify(), 401
+        return jsonify({'message':'Could not access user data.'}), 401
     user_id = user_data.get('user_id')
     if not  user_id:
-        return jsonify(), 401
+        return jsonify({'message':'Could not access user id.'}), 401
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     query = """ 
     SELECT Gacha.id, Gacha.name, Gacha.description, Gacha.id_img, Gacha.rarity, Collection.quantity
     FROM Collection
-    JOIN Gacha ON Collection.gacha_id = Gacha.id
-    WHERE Collection.user_id=%s
+    JOIN Gacha ON Collection.gacha_id = Gacha.id    
+    WHERE Collection.user_id=%s;
     """
     cursor.execute(query, (user_id, ))
     user_collection = cursor.fetchall()
@@ -43,7 +44,7 @@ def get_user_collection():
     connection.close()
 
     if not user_collection or user_collection is None:
-        return jsonify([]), 200
+        return jsonify({'message':'User owns no gachas.'}), 200
     return jsonify(user_collection), 200
 
 @app.route('/collection/<int:gacha_id>', methods=['GET']                )
@@ -53,10 +54,10 @@ def get_user_gacha(gacha_id):
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
     if not user_data:
-        return jsonify(), 401
+        return jsonify({'message':'Could not access user data.'}), 401
     user_id = user_data.get('user_id')
     if not  user_id:
-        return jsonify(), 401
+        return jsonify({'message':'Could not access user id.'}), 401
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
@@ -72,7 +73,7 @@ def get_user_gacha(gacha_id):
     connection.close()
 
     if not user_gacha or user_gacha is None:
-        return jsonify({"error": "Gacha not found or not owned by user."}), 404
+        return jsonify({'message':'Gacha not found or not owned by user.'}), 404
     return jsonify(user_gacha), 200
 
 @app.route('/collection/available', methods=['GET'])
@@ -82,10 +83,10 @@ def get_available_gachas():
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
     if not user_data:
-        return jsonify(), 401
+        return jsonify({'message':'Could not access user data.'}), 401
     user_id = user_data.get('user_id')
-    if not  user_id:
-        return jsonify(), 401
+    if not user_id:
+        return jsonify({'message':'Could not access user id.'}), 401
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
@@ -111,10 +112,10 @@ def get_available_gacha(gacha_id):
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
     if not user_data:
-        return jsonify(), 401
+        return jsonify({'message':'Could not access user data.'}), 401
     user_id = user_data.get('user_id')
     if not  user_id:
-        return jsonify(), 401
+        return jsonify({'message':'Could not access user id.'}), 401
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
@@ -132,6 +133,58 @@ def get_available_gacha(gacha_id):
     if not available_gacha or available_gacha is None:
         return jsonify({"message": "User owns every gacha."}), 200
     return jsonify(available_gacha), 200
+
+@app.route('/collection/roll', methods=['POST'])     
+@token_required(role_required='Player')
+def roll_gacha():
+
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    user_data = decode_token(token)
+    if not user_data:
+        return jsonify({'message':'Could not access user data.'}), 401
+    user_id = user_data.get('user_id')
+    if not user_id:
+        return jsonify({'message':'Could not access user id.'}), 401
+    wallet = user_data.get('wallet')
+    if not wallet:
+        wallet = 10
+        #return jsonify({'message':'Could not access user wallet.'}), 401
+    if wallet < 5:
+        return jsonify({'message':'Not enough currency to roll for a gacha.'}), 401
+    
+    gacha_id = random.randint(1, 20)
+
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    query = """
+    SELECT EXISTS (
+        SELECT 1
+        FROM Collection
+        WHERE user_id = %s AND gacha_id = %s
+    ) AS owns;
+    """
+    cursor.execute(query, (user_id, gacha_id))
+    owns_dict = cursor.fetchone()
+    already_owned = int(owns_dict["owns"])
+
+    if already_owned == 0:
+        query="""
+        INSERT INTO Collection (user_id, gacha_id, quantity)
+        VALUES (%s, %s, 1);
+        """
+    else:
+        query="""
+        UPDATE Collection
+        SET quantity = quantity + 1
+        WHERE user_id = %s AND gacha_id = %s;
+        """
+
+    cursor.execute(query, (user_id, gacha_id))
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return jsonify({"message": "User successfully rolled gacha " + str(gacha_id) + "."}), 200
 
 @app.route('/gachas', methods=['GET'])
 @token_required(role_required='Admin')
@@ -175,7 +228,7 @@ def patch_gacha(gacha_id):
     data = request.get_json()
 
     if not data.get('name') and not data.get('rarity') and not data.get('description') and not data.get('id_img'):
-        return jsonify({'message': 'No data provided for update'}), 400
+        return jsonify({'message': 'No data provided for update.'}), 400
 
     name = data.get('name')
     rarity = data.get('rarity')
@@ -210,7 +263,7 @@ def patch_gacha(gacha_id):
     cursor.close()
     connection.close()
 
-    return jsonify({'message': 'Gacha modified successfully'}), 200
+    return jsonify({'message': 'Gacha modified successfully.'}), 200
 
 # TODO: remove gacha
 # how to handle players who on that gacha??     
