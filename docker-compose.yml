@@ -100,7 +100,7 @@ services:
 
   transaction_service:
     build:
-      context: ./backend/transation_service
+      context: ./backend/transaction_service
     container_name: transaction_service
     environment:
       DB_HOST: "transaction_db"

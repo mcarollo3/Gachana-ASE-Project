@@ -145,12 +145,6 @@ def roll_gacha():
     user_id = user_data.get('user_id')
     if not user_id:
         return jsonify({'message':'Could not access user id.'}), 401
-    wallet = user_data.get('wallet')
-    if not wallet:
-        wallet = 10
-        #return jsonify({'message':'Could not access user wallet.'}), 401
-    if wallet < 5:
-        return jsonify({'message':'Not enough currency to roll for a gacha.'}), 401
     
     gacha_id = random.randint(1, 20)
 
@@ -193,7 +187,7 @@ def get_gachas():
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     query = """
-    SELECT id, name, description, id_img, rarity
+    SELECT *
     FROM Gacha;
     """
     cursor.execute(query)
@@ -210,7 +204,7 @@ def get_gacha(gacha_id):
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     query = """
-    SELECT id, name, description, id_img, rarity
+    SELECT *
     FROM Gacha
     WHERE id = %s;
     """
