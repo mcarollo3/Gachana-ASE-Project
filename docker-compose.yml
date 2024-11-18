@@ -98,6 +98,23 @@ services:
     networks:
       - api_network
 
+  transaction_service:
+    build:
+      context: ./backend/transation_service
+    container_name: transaction_service
+    environment:
+      DB_HOST: "transaction_db"
+      DB_NAME: "TransactionService"
+      DB_USER: "gachana"
+      DB_PASSWORD: "root"
+      SECRET_KEY: ${SECRET_KEY}
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
+    networks:
+      - api_network
+
   nginx:
     image: nginx:latest
     container_name: api_gateway
@@ -107,6 +124,8 @@ services:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - user_service
+      - gacha_service
+      - transaction_service
     networks:
       - api_network
 
