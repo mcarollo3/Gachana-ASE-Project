@@ -115,6 +115,23 @@ services:
     networks:
       - api_network
 
+  market_service:
+    build:
+      context: ./backend/market_service
+    container_name: market_service
+    environment:
+      DB_HOST: "market_db"
+      DB_NAME: "MarketService"
+      DB_USER: "gachana"
+      DB_PASSWORD: "root"
+      SECRET_KEY: ${SECRET_KEY}
+    ports:
+      - "5003:5003"
+    volumes:
+      - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
+    networks:
+      - api_network
+
   nginx:
     image: nginx:latest
     container_name: api_gateway
@@ -126,6 +143,7 @@ services:
       - user_service
       - gacha_service
       - transaction_service
+      - market_service
     networks:
       - api_network
 

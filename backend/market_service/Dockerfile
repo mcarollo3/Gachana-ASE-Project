@@ -6,6 +6,6 @@ COPY . /app
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-EXPOSE 5002
+EXPOSE 5003
 
 CMD ["python", "market_api.py"]
