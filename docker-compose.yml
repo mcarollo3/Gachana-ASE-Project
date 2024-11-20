@@ -48,19 +48,19 @@ services:
     networks:
       - api_network
 
-  transaction_db:
+  currency_db:
     image: mysql:latest
-    container_name: transaction_db
+    container_name: currency_db
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: TransactionService
+      MYSQL_DATABASE: CurrencyService
       MYSQL_USER: gachana
       MYSQL_PASSWORD: root
     ports:
       - "3310:3306"
     volumes:
-      - transaction_data:/var/lib/mysql
-      - ./config_files/databases/transaction_service_db.sql:/docker-entrypoint-initdb.d/transaction_service_db.sql
+      - currency_data:/var/lib/mysql
+      - ./config_files/databases/currency_service_db.sql:/docker-entrypoint-initdb.d/currency_service_db.sql
     networks:
       - api_network
 
@@ -98,13 +98,13 @@ services:
     networks:
       - api_network
 
-  transaction_service:
+  currency_service:
     build:
-      context: ./backend/transaction_service
-    container_name: transaction_service
+      context: ./backend/currency_service
+    container_name: currency_service
     environment:
-      DB_HOST: "transaction_db"
-      DB_NAME: "TransactionService"
+      DB_HOST: "currency_db"
+      DB_NAME: "CurrencyService"
       DB_USER: "gachana"
       DB_PASSWORD: "root"
       SECRET_KEY: ${SECRET_KEY}
@@ -142,7 +142,7 @@ services:
     depends_on:
       - user_service
       - gacha_service
-      - transaction_service
+      - currency_service
       - market_service
     networks:
       - api_network
@@ -154,8 +154,8 @@ volumes:
     name: gacha_db_volume
   market_data:
     name: market_db_volume
-  transaction_data:
-    name: transaction_db_volume
+  currency_data:
+    name: currency_db_volume
 
 networks:
   api_network:

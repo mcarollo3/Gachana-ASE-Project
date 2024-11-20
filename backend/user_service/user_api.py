@@ -19,14 +19,11 @@ def get_db_connection():
         database=os.environ.get("DB_NAME")
     )
 
-
 # Gestione del token
-def generate_token(user_id, role):
+def generate_auth_token(user_id, role):
     expiration_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
     return jwt.encode({'user_id': user_id, 'role': role, 'exp': expiration_time},
                        SECRET_KEY, algorithm="HS256")
-
-
 
 @app.route('/signup', methods=['POST'])
 def registration():
@@ -75,7 +72,7 @@ def login():
     connection.close()
 
     if user:
-        token = generate_token(user['id'], user['role'])
+        token = generate_auth_token(user['id'], user['role'])
         return jsonify({'token': token})
     return jsonify({'message': 'Invalid credentials'}), 401
 
@@ -86,7 +83,7 @@ def logout():
 
 # ADMIN ENDPOINT
 
-@app.route('/users', methods=['GET'])
+@app.route('/list', methods=['GET'])
 @token_required(role_required='Admin')
 def get_users():
     connection = get_db_connection()
@@ -98,7 +95,7 @@ def get_users():
 
     return jsonify({'users': users_list})
 
-@app.route('/users/<int:user_id>', methods=['GET'])
+@app.route('/<int:user_id>', methods=['GET'])
 @token_required(role_required='Admin')
 def get_user(user_id):
     connection = get_db_connection()
@@ -110,19 +107,18 @@ def get_user(user_id):
 
     return jsonify({'user': user})
 
-@app.route('/users/<int:user_id>/update', methods=['PATCH'])
+@app.route('/<int:user_id>/update', methods=['PATCH'])
 @token_required(role_required='Admin')
 def update_user(user_id):
     data = request.get_json()
 
-    if not data.get('username') and not data.get('psw') and not data.get('role') and not data.get('id_image') and not data.get('wallet'):
+    if not data.get('username') and not data.get('psw') and not data.get('role') and not data.get('id_image'):
         return jsonify({'message': 'No data provided for update'}), 400
 
     username = data.get('username')
     psw = data.get('psw')
     role = data.get('role')
     id_image = data.get('id_image')
-    wallet = data.get('wallet')
 
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -142,9 +138,6 @@ def update_user(user_id):
     if id_image:
         query += "id_image = %s, "
         params.append(id_image)
-    if wallet:
-        query += "wallet = %s, "
-        params.append(wallet)
 
     query = query.rstrip(', ')
 
@@ -159,7 +152,7 @@ def update_user(user_id):
 
     return jsonify({'message': 'User updated successfully'}), 200
 
-@app.route('/users/<int:user_id>/delete', methods=['DELETE'])
+@app.route('/<int:user_id>/delete', methods=['DELETE'])
 @token_required(role_required='Admin')
 def delete_account_admin(user_id):
 
@@ -241,18 +234,25 @@ def update_account():
 
     return jsonify({'message': 'User information updated successfully'}), 200
 
-@app.route('/buy_currency', methods=['PATCH'])
-@token_required(role_required='Player')
-def add_funds():
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
     user_id = user_data['user_id']
 
     data = request.get_json()
     amount = data.get('amount')
+    card_number = data.get('card_number')
+    expiry_date = data.get('expiry_date')
+    cvv = data.get('cvv')
 
     if not amount or amount <= 0:
         return jsonify({'message': 'Invalid amount. Must be greater than zero.'}), 400
+
+    if not card_number or not expiry_date or not cvv:
+        return jsonify({'message': 'Invalid card details. All fields are required.'}), 400
+
+    payment_successful = simulate_payment(card_number, expiry_date, cvv, amount)
+    if not payment_successful:
+        return jsonify({'message': 'Payment failed. Please check your card details.'}), 400
 
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -264,6 +264,7 @@ def add_funds():
     connection.close()
 
     return jsonify({'message': f'{amount} added to your wallet successfully!'}), 200
+
    
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

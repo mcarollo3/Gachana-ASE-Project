@@ -23,3 +23,12 @@ CREATE TABLE Offers (
     offer_value DECIMAL(10, 2) NOT NULL,
     FOREIGN KEY (market_id) REFERENCES Market(id) ON DELETE CASCADE
 );
+
+CREATE TABLE Market_History (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_seller_id INT NOT NULL,
+    user_buyer_id INT NOT NULL,
+    gacha_value DECIMAL(10, 2) NOT NULL,
+    id_gacha INT NOT NULL,
+    date DATETIME NOT NULL
+);

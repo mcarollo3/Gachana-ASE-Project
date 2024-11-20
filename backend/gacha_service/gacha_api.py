@@ -134,7 +134,7 @@ def get_available_gacha(gacha_id):
 
     return jsonify(available_gacha), 200
 
-@app.route('/collection/roll', methods=['POST'])     
+@app.route('/roll', methods=['POST'])     
 @token_required(role_required='Player')
 def roll_gacha():
 
@@ -180,7 +180,7 @@ def roll_gacha():
 
     return jsonify({"message": "User successfully rolled gacha " + str(gacha_id) + "."}), 200
 
-@app.route('/gachas', methods=['GET'])
+@app.route('/gachas-list', methods=['GET'])
 @token_required(role_required='Admin')
 def get_gachas():
 
@@ -197,7 +197,7 @@ def get_gachas():
 
     return jsonify(gachas), 200
 
-@app.route('/gachas/<int:gacha_id>', methods=['GET'])
+@app.route('/<int:gacha_id>', methods=['GET'])
 @token_required(role_required='Admin')
 def get_gacha(gacha_id):
 
@@ -215,7 +215,7 @@ def get_gacha(gacha_id):
 
     return jsonify(gacha), 200
 
-@app.route('/gachas/update/<int:gacha_id>', methods=['PATCH'])     
+@app.route('/update/<int:gacha_id>', methods=['PATCH'])     
 @token_required(role_required='Admin')
 def patch_gacha(gacha_id):
 
@@ -259,7 +259,7 @@ def patch_gacha(gacha_id):
 
     return jsonify({'message': 'Gacha modified successfully.'}), 200
 
-@app.route('/gachas/add', methods=['POST'])
+@app.route('/add', methods=['POST'])
 @token_required(role_required='Admin')  
 def add_gacha():
     data = request.get_json()
@@ -297,7 +297,7 @@ def add_gacha():
     return jsonify({'message': 'Gacha added successfully.', 'gacha_id': new_gacha_id}), 201
 
 
-@app.route('/gachas/delete/<int:gacha_id>', methods=['DELETE'])
+@app.route('/delete/<int:gacha_id>', methods=['DELETE'])
 @token_required(role_required='Admin')  
 def delete_gacha(gacha_id):
     connection = get_db_connection()

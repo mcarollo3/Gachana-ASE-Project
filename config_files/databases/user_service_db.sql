@@ -10,8 +10,7 @@ CREATE TABLE UserData (
     username VARCHAR(50) NOT NULL,
     role ENUM('Admin','Player') NOT NULL,
     psw VARCHAR(100) NOT NULL,
-    id_image INT,
-    wallet DECIMAL(10, 2) DEFAULT 0.00
+    id_image INT
 );
 
 INSERT INTO UserData (username, psw, role)
