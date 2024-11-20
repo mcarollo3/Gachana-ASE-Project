@@ -16,3 +16,7 @@ CREATE TABLE UserData (
 
 INSERT INTO UserData (username, psw, role)
 VALUES ('admin', 'gachana', 'Admin');
+
+
+INSERT INTO UserData (username, psw, role)
+VALUES ('marco', 'prova', 'Player');

@@ -33,7 +33,7 @@ def get_user_collection():
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     query = """ 
-    SELECT Gacha.id, Gacha.name, Gacha.description, Gacha.id_img, Gacha.rarity, Collection.quantity
+    SELECT Gacha.id, Gacha.name, Gacha.id_img, Collection.quantity
     FROM Collection
     JOIN Gacha ON Collection.gacha_id = Gacha.id    
     WHERE Collection.user_id=%s;
@@ -91,7 +91,7 @@ def get_available_gachas():
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     query = """
-    SELECT Gacha.id, Gacha.name, Gacha.description, Gacha.id_img, Gacha.rarity
+    SELECT Gacha.id, Gacha.name, Gacha.id_img
     FROM Gacha
     LEFT JOIN Collection ON Gacha.id = Collection.gacha_id AND Collection.user_id = %s 
     WHERE Collection.user_id IS NULL;
@@ -108,14 +108,13 @@ def get_available_gachas():
 @app.route('/collection/available/<int:gacha_id>', methods=['GET'])
 @token_required(role_required='Player')
 def get_available_gacha(gacha_id):
-
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
     if not user_data:
-        return jsonify({'message':'Could not access user data.'}), 401
+        return jsonify({'message': 'Could not access user data.'}), 401
     user_id = user_data.get('user_id')
-    if not  user_id:
-        return jsonify({'message':'Could not access user id.'}), 401
+    if not user_id:
+        return jsonify({'message': 'Could not access user id.'}), 401
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
@@ -123,15 +122,16 @@ def get_available_gacha(gacha_id):
     SELECT Gacha.id, Gacha.name, Gacha.description, Gacha.id_img, Gacha.rarity
     FROM Gacha
     LEFT JOIN Collection ON Gacha.id = Collection.gacha_id AND Collection.user_id = %s
-    WHERE Gacha.id = 2 AND Collection.user_id IS NULL;
+    WHERE Gacha.id = %s AND Collection.user_id IS NULL;
     """
-    cursor.execute(query, (user_id, ))
-    available_gacha = cursor.fetchall()
+    cursor.execute(query, (user_id, gacha_id))
+    available_gacha = cursor.fetchone()  
     cursor.close()
     connection.close()
 
-    if not available_gacha or available_gacha is None:
-        return jsonify({"message": "User owns every gacha."}), 200
+    if available_gacha is None:  
+        return jsonify({"message": "User already owns this gacha."}), 200
+
     return jsonify(available_gacha), 200
 
 @app.route('/collection/roll', methods=['POST'])     
@@ -215,7 +215,7 @@ def get_gacha(gacha_id):
 
     return jsonify(gacha), 200
 
-@app.route('/gachas/<int:gacha_id>', methods=['PATCH'])     
+@app.route('/gachas/update/<int:gacha_id>', methods=['PATCH'])     
 @token_required(role_required='Admin')
 def patch_gacha(gacha_id):
 
@@ -259,8 +259,88 @@ def patch_gacha(gacha_id):
 
     return jsonify({'message': 'Gacha modified successfully.'}), 200
 
-# TODO: remove gacha
-# how to handle players who on that gacha??     
+@app.route('/gachas/add', methods=['POST'])
+@token_required(role_required='Admin')  
+def add_gacha():
+    data = request.get_json()
+    if not data:
+        return jsonify({'message': 'Invalid request. JSON data is required.'}), 400
+
+    name = data.get('name')
+    description = data.get('description')
+    id_img = data.get('id_img')
+    rarity = data.get('rarity')
+
+    if not name or not rarity:
+        return jsonify({'message': 'Name and rarity are required fields.'}), 400
+
+    if rarity not in ['Common', 'Uncommon', 'Rare', 'Super Rare', 'Legendary']:
+        return jsonify({'message': f'Invalid rarity: {rarity}. Must be one of Common, Uncommon, Rare, Super Rare, Legendary.'}), 400
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    try:
+        query = """
+        INSERT INTO Gacha (name, description, id_img, rarity)
+        VALUES (%s, %s, %s, %s)
+        """
+        cursor.execute(query, (name, description, id_img, rarity))
+        connection.commit()
+        new_gacha_id = cursor.lastrowid
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'message': f'Error adding gacha: {str(e)}'}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+    return jsonify({'message': 'Gacha added successfully.', 'gacha_id': new_gacha_id}), 201
+
+
+@app.route('/gachas/delete/<int:gacha_id>', methods=['DELETE'])
+@token_required(role_required='Admin')  
+def delete_gacha(gacha_id):
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+        query_users = """
+        SELECT DISTINCT user_id
+        FROM Collection
+        WHERE gacha_id = %s
+        """
+        cursor.execute(query_users, (gacha_id,))
+        users = cursor.fetchall()  
+        user_ids = [user['user_id'] for user in users]  
+
+        
+        query_delete_collection = """
+        DELETE FROM Collection
+        WHERE gacha_id = %s
+        """
+        cursor.execute(query_delete_collection, (gacha_id,))
+
+        query_delete_gacha = """
+        DELETE FROM Gacha
+        WHERE id = %s
+        """
+        cursor.execute(query_delete_gacha, (gacha_id,))
+
+        connection.commit()
+
+    except Exception as e:
+        connection.rollback()  
+        return jsonify({'message': f'Error deleting gacha: {str(e)}'}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+    return jsonify({
+        'message': 'Gacha deleted successfully.',
+        'removed_from_users': user_ids  
+    }), 200
+    # aggiungere un refound all'utente
+  
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)

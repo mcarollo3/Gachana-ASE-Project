@@ -110,7 +110,7 @@ def get_user(user_id):
 
     return jsonify({'user': user})
 
-@app.route('/users/<int:user_id>/update', methods=['PUT'])
+@app.route('/users/<int:user_id>/update', methods=['PATCH'])
 @token_required(role_required='Admin')
 def update_user(user_id):
     data = request.get_json()
@@ -196,7 +196,7 @@ def delete_account():
 
     return jsonify({'message': 'User account deleted successfully!'}), 200
 
-@app.route('/update', methods=['PUT'])
+@app.route('/update', methods=['PATCH'])
 def update_account():
     
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
@@ -240,6 +240,30 @@ def update_account():
     connection.close()
 
     return jsonify({'message': 'User information updated successfully'}), 200
-    
+
+@app.route('/buy_currency', methods=['PATCH'])
+@token_required(role_required='Player')
+def add_funds():
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    user_data = decode_token(token)
+    user_id = user_data['user_id']
+
+    data = request.get_json()
+    amount = data.get('amount')
+
+    if not amount or amount <= 0:
+        return jsonify({'message': 'Invalid amount. Must be greater than zero.'}), 400
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("UPDATE UserData SET wallet = wallet + %s WHERE id = %s;", (amount, user_id))
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return jsonify({'message': f'{amount} added to your wallet successfully!'}), 200
+   
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
