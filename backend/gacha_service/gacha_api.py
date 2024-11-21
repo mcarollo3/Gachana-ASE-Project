@@ -340,7 +340,116 @@ def delete_gacha(gacha_id):
         'removed_from_users': user_ids  
     }), 200
     # aggiungere un refound all'utente
-  
+
+# Market
+
+@app.route('/collection/add', methods=['POST'])
+def add_gacha_to_user():
+    token = request.get_json().get('token')
+    if not token:
+        return jsonify({'message': 'Token is required.'}), 400
+
+    try:
+        decoded_token = decode_token(token) 
+    except Exception as e:
+        return jsonify({'message': f'Invalid token: {str(e)}'}), 401
+
+    buyer_id = decoded_token.get("userId")
+    gacha_id = decoded_token.get("gachaID")
+
+    if not buyer_id or not gacha_id:
+        return jsonify({'message': 'Token is missing userId or gachaID.'}), 400
+
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+        
+        query_exists = """
+        SELECT EXISTS (
+            SELECT 1
+            FROM Collection
+            WHERE user_id = %s AND gacha_id = %s
+        ) AS owns;
+        """
+        cursor.execute(query_exists, (buyer_id, gacha_id))
+        owns_dict = cursor.fetchone()
+        already_owned = int(owns_dict["owns"])
+
+
+        if already_owned == 0:
+            query_add = """
+            INSERT INTO Collection (user_id, gacha_id, quantity)
+            VALUES (%s, %s, 1);
+            """
+            cursor.execute(query_add, (buyer_id, gacha_id))
+        else:
+            query_update = """
+            UPDATE Collection
+            SET quantity = quantity + 1
+            WHERE user_id = %s AND gacha_id = %s;
+            """
+            cursor.execute(query_update, (buyer_id, gacha_id))
+
+        connection.commit()
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'message': f'Error adding Gacha: {str(e)}'}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+    return jsonify({'message': f'Gacha {gacha_id} successfully added to user {buyer_id}.'}), 200
+
+@app.route('/remove', methods=['POST'])
+@token_required(role_required='Player')  
+def remove_gacha():
+    data = request.get_json()
+    if not data or 'user_id' not in data or 'gacha_id' not in data:
+        return jsonify({'message': 'user_id and gacha_id are required.'}), 400
+    
+    user_id = data['user_id']
+    gacha_id = data['gacha_id']
+    
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    query = """
+    SELECT quantity
+    FROM Collection
+    WHERE user_id = %s AND gacha_id = %s;
+    """
+    cursor.execute(query, (user_id, gacha_id))
+    result = cursor.fetchone()
+    
+    if not result:
+        cursor.close()
+        connection.close()
+        return jsonify({'message': 'User does not own this gacha.'}), 404
+    
+    quantity = result['quantity']
+    
+    if quantity <= 1:
+        delete_query = """
+        DELETE FROM Collection
+        WHERE user_id = %s AND gacha_id = %s;
+        """
+        cursor.execute(delete_query, (user_id, gacha_id))
+    else:
+        update_query = """
+        UPDATE Collection
+        SET quantity = quantity - 1
+        WHERE user_id = %s AND gacha_id = %s;
+        """
+        cursor.execute(update_query, (user_id, gacha_id))
+    
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return jsonify({'message': f'Gacha with ID {gacha_id} removed from user {user_id}.'}), 200
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)

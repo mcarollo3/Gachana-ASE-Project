@@ -10,6 +10,7 @@ CREATE TABLE Market (
     id INT AUTO_INCREMENT PRIMARY KEY,
     gacha_id INT NOT NULL,
     user_id INT NOT NULL,
+    init_value DECIMAL(10, 2) NOT NULL,
     value_last_offer DECIMAL(10, 2) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE
