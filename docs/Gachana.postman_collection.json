@@ -1,0 +1,2024 @@
+{
+	"info": {
+		"_postman_id": "6241a48d-f65b-48e9-80bc-feac845d5ee9",
+		"name": "Gachana",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39718315",
+		"_collection_link": "https://gachana.postman.co/workspace/ccd2cd2e-8e57-46e0-9577-e2befa5a4699/collection/39718315-6241a48d-f65b-48e9-80bc-feac845d5ee9?action=share&source=collection_link&creator=39718315"
+	},
+	"item": [
+		{
+			"name": "gacha_service",
+			"item": [
+				{
+					"name": "Player",
+					"item": [
+						{
+							"name": "get_user_collection",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Validate status code",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Validate response for a user with a collection",
+											"pm.test(\"Response contains a list of Gacha items\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    if (jsonData.length > 0) {",
+											"",
+											"        jsonData.forEach(item => {",
+											"            pm.expect(jsonData).to.be.an(\"array\");",
+											"",
+											"            pm.expect(item).to.have.property(\"id\");",
+											"            pm.expect(item).to.have.property(\"name\");",
+											"            pm.expect(item).to.have.property(\"id_img\");",
+											"            pm.expect(item).to.have.property(\"quantity\");",
+											"        });",
+											"    } else {",
+											"        pm.test(\"Message for empty collection\", function () {",
+											"            pm.expect(jsonData.message).to.equal(\"User owns no gachas.\");",
+											"        });",
+											"    }",
+											"});",
+											"",
+											"// Validate error for invalid or missing token",
+											"pm.test(\"Invalid or missing token\", function () {",
+											"    if (pm.response.code === 401) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.be.oneOf([",
+											"            \"Could not access user data.\",",
+											"            \"Could not access user id.\"",
+											"        ]);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"/*pm.sendRequest({",
+											"    url: 'https://localhost/user/login',",
+											"    method: 'POST',",
+											"    body: {",
+											"        mode: 'raw',",
+											"        raw: JSON.stringify({",
+											"            username: 'marco',",
+											"            psw: 'prova'",
+											"        })",
+											"    }",
+											"}, function (err, res) {",
+											"    if (err) {",
+											"        console.log(err);",
+											"        return;",
+											"    }",
+											"    // Extract token from the response and set it as an environment variable",
+											"    const token = res.json().token;",
+											"    pm.environment.set('auth_token', token);  // Save token to environment variable",
+											"});*/"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gacha_url}}/collection",
+									"host": [
+										"{{gacha_url}}"
+									],
+									"path": [
+										"collection"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get_user_gacha",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Validate status code",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Validate response for a valid Gacha item",
+											"pm.test(\"Response contains expected Gacha fields\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    if (pm.response.code === 200) {",
+											"        pm.expect(jsonData).to.be.an(\"object\");",
+											"        pm.expect(jsonData).to.have.property(\"id\");",
+											"        pm.expect(jsonData).to.have.property(\"name\");",
+											"        pm.expect(jsonData).to.have.property(\"description\");",
+											"        pm.expect(jsonData).to.have.property(\"id_img\");",
+											"        pm.expect(jsonData).to.have.property(\"rarity\");",
+											"    }",
+											"});",
+											"",
+											"// Validate Gacha not found response",
+											"pm.test(\"Gacha not found or not owned by user\", function () {",
+											"    if (pm.response.code === 404) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Gacha not found or not owned by user.\");",
+											"    }",
+											"});",
+											"",
+											"// Validate response for invalid or missing token",
+											"pm.test(\"Invalid or missing token\", function () {",
+											"    if (pm.response.code === 401) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.be.oneOf([",
+											"            \"Could not access user data.\",",
+											"            \"Could not access user id.\"",
+											"        ]);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gacha_url}}/collection/1",
+									"host": [
+										"{{gacha_url}}"
+									],
+									"path": [
+										"collection",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get_available_gachas",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Validate status code",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Validate response for available Gacha items",
+											"pm.test(\"Response contains a list of available Gacha items\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    if (jsonData.length > 0) {",
+											"        pm.expect(jsonData).to.be.an(\"array\");",
+											"        jsonData.forEach(item => {",
+											"            pm.expect(item).to.have.property(\"id\");",
+											"            pm.expect(item).to.have.property(\"name\");",
+											"            pm.expect(item).to.have.property(\"id_img\");",
+											"        });",
+											"    } else {",
+											"        pm.test(\"Message when user owns all Gacha items\", function () {",
+											"            pm.expect(jsonData.message).to.equal(\"User owns every gacha.\");",
+											"        });",
+											"    }",
+											"});",
+											"",
+											"// Validate response for invalid or missing token",
+											"pm.test(\"Invalid or missing token\", function () {",
+											"    if (pm.response.code === 401) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.be.oneOf([",
+											"            \"Could not access user data.\",",
+											"            \"Could not access user id.\"",
+											"        ]);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gacha_url}}/collection/available",
+									"host": [
+										"{{gacha_url}}"
+									],
+									"path": [
+										"collection",
+										"available"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get_available_gacha",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Validate status code",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Validate response for an available Gacha item",
+											"pm.test(\"Response contains expected Gacha fields if available\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    if (pm.response.code === 200 && jsonData.id) {",
+											"        pm.expect(jsonData).to.be.an(\"object\");",
+											"        pm.expect(jsonData).to.have.property(\"id\");",
+											"        pm.expect(jsonData).to.have.property(\"name\");",
+											"        pm.expect(jsonData).to.have.property(\"description\");",
+											"        pm.expect(jsonData).to.have.property(\"id_img\");",
+											"        pm.expect(jsonData).to.have.property(\"rarity\");",
+											"    } else {",
+											"        pm.test(\"Message when Gacha is already owned\", function () {",
+											"            pm.expect(jsonData.message).to.equal(\"User already owns this gacha.\");",
+											"        });",
+											"    }",
+											"});",
+											"",
+											"// Validate response for invalid or missing token",
+											"pm.test(\"Invalid or missing token\", function () {",
+											"    if (pm.response.code === 401) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.be.oneOf([",
+											"            \"Could not access user data.\",",
+											"            \"Could not access user id.\"",
+											"        ]);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gacha_url}}/collection/available/1",
+									"host": [
+										"{{gacha_url}}"
+									],
+									"path": [
+										"collection",
+										"available",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "roll_gacha",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Validate status code",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Validate response for a successful Gacha roll",
+											"pm.test(\"Response contains success message\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.be.an(\"object\");",
+											"    pm.expect(jsonData).to.have.property(\"message\");",
+											"    pm.expect(jsonData.message).to.match(/^User successfully rolled gacha \\d+\\.$/);",
+											"});",
+											"",
+											"// Validate response for invalid or missing token",
+											"pm.test(\"Invalid or missing token\", function () {",
+											"    if (pm.response.code === 401) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.be.oneOf([",
+											"            \"Could not access user data.\",",
+											"            \"Could not access user id.\"",
+											"        ]);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{gacha_url}}/collection/roll",
+									"host": [
+										"{{gacha_url}}"
+									],
+									"path": [
+										"collection",
+										"roll"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "collection-add",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Validate status code",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Validate response for a successful Gacha roll",
+											"pm.test(\"Response contains success message\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.be.an(\"object\");",
+											"    pm.expect(jsonData).to.have.property(\"message\");",
+											"    pm.expect(jsonData.message).to.match(/^User successfully rolled gacha \\d+\\.$/);",
+											"});",
+											"",
+											"// Validate response for invalid or missing token",
+											"pm.test(\"Invalid or missing token\", function () {",
+											"    if (pm.response.code === 401) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.be.oneOf([",
+											"            \"Could not access user data.\",",
+											"            \"Could not access user id.\"",
+											"        ]);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"token\": \"\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{gacha_url}}/collection/add",
+									"host": [
+										"{{gacha_url}}"
+									],
+									"path": [
+										"collection",
+										"add"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "remove",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Validate status code",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Validate response for a successful Gacha roll",
+											"pm.test(\"Response contains success message\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.be.an(\"object\");",
+											"    pm.expect(jsonData).to.have.property(\"message\");",
+											"    pm.expect(jsonData.message).to.match(/^User successfully rolled gacha \\d+\\.$/);",
+											"});",
+											"",
+											"// Validate response for invalid or missing token",
+											"pm.test(\"Invalid or missing token\", function () {",
+											"    if (pm.response.code === 401) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.be.oneOf([",
+											"            \"Could not access user data.\",",
+											"            \"Could not access user id.\"",
+											"        ]);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user_id\": \"\",\r\n    \"gacha_id\": \"\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{gacha_url}}/remove",
+									"host": [
+										"{{gacha_url}}"
+									],
+									"path": [
+										"remove"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "get_gachas",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Validate status code",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Validate response contains an array of Gacha items",
+											"pm.test(\"Response contains a list of Gacha items\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.be.an(\"array\");",
+											"    if (jsonData.length > 0) {",
+											"        jsonData.forEach(item => {",
+											"            pm.expect(item).to.have.property(\"id\");",
+											"            pm.expect(item).to.have.property(\"name\");",
+											"            pm.expect(item).to.have.property(\"description\");",
+											"            pm.expect(item).to.have.property(\"id_img\");",
+											"            pm.expect(item).to.have.property(\"rarity\");",
+											"        });",
+											"    } else {",
+											"        pm.test(\"Response is an empty list\", function () {",
+											"            pm.expect(jsonData.length).to.equal(0);",
+											"        });",
+											"    }",
+											"});",
+											"",
+											"// Validate response for unauthorized access",
+											"pm.test(\"Unauthorized access\", function () {",
+											"    if (pm.response.code === 401) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    } else if (pm.response.code === 403) {",
+											"        pm.test(\"Forbidden access for non-Admin role\", function () {",
+											"            pm.expect(pm.response.text()).to.include(\"Forbidden\");",
+											"        });",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gacha_url}}/gachas-list",
+									"host": [
+										"{{gacha_url}}"
+									],
+									"path": [
+										"gachas-list"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get_gacha",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Validate status code",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"// Validate response structure for the specific Gacha item",
+											"pm.test(\"Response contains Gacha item fields\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.be.an(\"array\"); // Response should be an array",
+											"    if (jsonData.length > 0) {",
+											"        const gacha = jsonData[0]; // Since it's a single Gacha item",
+											"        pm.expect(gacha).to.have.property(\"id\");",
+											"        pm.expect(gacha).to.have.property(\"name\");",
+											"        pm.expect(gacha).to.have.property(\"description\");",
+											"        pm.expect(gacha).to.have.property(\"id_img\");",
+											"        pm.expect(gacha).to.have.property(\"rarity\");",
+											"    } else {",
+											"        pm.test(\"Response is empty when Gacha not found\", function () {",
+											"            pm.expect(jsonData.length).to.equal(0);",
+											"        });",
+											"    }",
+											"});",
+											"",
+											"// Validate response for unauthorized or forbidden access",
+											"pm.test(\"Unauthorized or Forbidden access\", function () {",
+											"    if (pm.response.code === 401) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    } else if (pm.response.code === 403) {",
+											"        pm.test(\"Forbidden access for non-Admin role\", function () {",
+											"            pm.expect(pm.response.text()).to.include(\"Forbidden\");",
+											"        });",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{gacha_url}}/1",
+									"host": [
+										"{{gacha_url}}"
+									],
+									"path": [
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "add_gacha",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test Case 1: Valid Request - Adding a new gacha",
+											"pm.test(\"Status code is 201 when valid data is provided\", function () {",
+											"    pm.response.to.have.status(201);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal(\"Gacha added successfully.\");",
+											"    pm.expect(jsonData).to.have.property(\"gacha_id\");",
+											"});",
+											"",
+											"// Test Case 2: Missing JSON Data - Request body is empty or not provided",
+											"pm.test(\"Status code is 400 when no data is provided\", function () {",
+											"    pm.response.to.have.status(400);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal(\"Invalid request. JSON data is required.\");",
+											"});",
+											"",
+											"// Test Case 3: Missing Required Fields (Name or Rarity) - Name or rarity is missing",
+											"pm.test(\"Status code is 400 when 'name' or 'rarity' is missing\", function () {",
+											"    pm.response.to.have.status(400);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal(\"Name and rarity are required fields.\");",
+											"});",
+											"",
+											"// Test Case 4: Invalid Rarity Value - Rarity is not one of the allowed values",
+											"pm.test(\"Status code is 400 when 'rarity' is invalid\", function () {",
+											"    pm.response.to.have.status(400);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal(\"Invalid rarity: InvalidRarity. Must be one of Common, Uncommon, Rare, Super Rare, Legendary.\");",
+											"});",
+											"",
+											"// Example of valid request to trigger the successful add",
+											"pm.sendRequest({",
+											"    url: pm.environment.get(\"base_url\") + \"/gachas/add\",",
+											"    method: 'POST',",
+											"    header: {",
+											"        \"Authorization\": \"Bearer <your_admin_token>\",",
+											"        \"Content-Type\": \"application/json\"",
+											"    },",
+											"    body: {",
+											"        mode: 'raw',",
+											"        raw: JSON.stringify({",
+											"            name: \"New Gacha\",",
+											"            description: \"Description of new gacha.\",",
+											"            id_img: \"image_url_here\",",
+											"            rarity: \"Rare\"",
+											"        })",
+											"    }",
+											"}, function (err, res) {",
+											"    pm.test(\"Status code is 201 for successful creation\", function () {",
+											"        pm.expect(res).to.have.status(201);",
+											"        pm.expect(res.json()).to.have.property(\"gacha_id\");",
+											"    });",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"test\",\r\n    \"description\": \"description\",\r\n    \"id_img\": \"id_img\",\r\n    \"rarity\": \"Common\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{gacha_url}}/add",
+									"host": [
+										"{{gacha_url}}"
+									],
+									"path": [
+										"add"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete_gacha",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200 when gacha is deleted\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    ",
+											"    pm.expect(jsonData.message).to.equal(\"Gacha deleted successfully.\");",
+											"    pm.expect(jsonData).to.have.property(\"removed_from_users\");",
+											"    pm.expect(jsonData.removed_from_users).to.be.an('array');",
+											"});",
+											"",
+											"pm.test(\"Status code is 500 when there is an error\", function () {",
+											"    pm.response.to.have.status(500);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.match(/Error deleting gacha/);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// Pre-request script to set the token dynamically",
+											"pm.sendRequest({",
+											"    url: 'https://localhost/user/login',",
+											"    method: 'POST',",
+											"    body: {",
+											"        mode: 'raw',",
+											"        raw: JSON.stringify({",
+											"            username: 'admin',",
+											"            password: 'gachana'",
+											"        })",
+											"    }",
+											"}, function (err, res) {",
+											"    if (err) {",
+											"        console.log('Error fetching token: ', err);",
+											"        return;",
+											"    }",
+											"    // Extract token and save it as an environment variable",
+											"    const token = res.json().token;",
+											"    pm.environment.set('auth_token', token);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{gacha_url}}/delete/21",
+									"host": [
+										"{{gacha_url}}"
+									],
+									"path": [
+										"delete",
+										"21"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "patch_gacha",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful update",
+											"pm.test(\"Status code is 200 for successful update\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal(\"Gacha modified successfully.\");",
+											"});",
+											"",
+											"// Test for PATCH request with empty body",
+											"pm.sendRequest({",
+											"    url: pm.environment.get(\"http://localhost\") + \"/gacha/gachas/update/1\",",
+											"    method: 'POST',",
+											"    header: {",
+											"        \"Authorization\": \"Bearer <your_token>\",",
+											"        \"Content-Type\": \"application/json\"",
+											"    },",
+											"    body: {",
+											"        mode: 'raw',",
+											"        raw: \"\"",
+											"    }",
+											"}, function (err, res) {",
+											"    pm.test(\"Status code is 400 when no update data is provided\", function () {",
+											"        pm.response.to.have.status(400);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"No data provided for update.\");",
+											"    });",
+											"});",
+											"",
+											"/*pm.test(\"Status code is 400 when no update data is provided\", function () {",
+											"    pm.expect(pm.request.body).to.eql({});",
+											"    pm.response.to.have.status(400);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal(\"No data provided for update.\");",
+											"});",
+											"*/",
+											"// Test for unauthorized access (Invalid or missing token)",
+											"pm.test(\"Status code is 401 for unauthorized access\", function () {",
+											"    if (pm.response.code === 401) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for forbidden access (Non-Admin role)",
+											"pm.test(\"Status code is 403 for forbidden access (Non-Admin role)\", function () {",
+											"    if (pm.response.code === 403) {",
+											"        pm.expect(pm.response.text()).to.include(\"Forbidden\");",
+											"    }",
+											"});",
+											"",
+											"// Test that the response is correctly formatted",
+											"pm.test(\"Response contains valid JSON body\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property(\"message\");",
+											"    pm.expect(jsonData.message).to.be.a(\"string\");",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"gacha_name\",\n    \"rarity\": \"Common\",\n    \"description\": \"gacha_description\",\n    \"id_img\": \"abu\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{gacha_url}}/update/1",
+									"host": [
+										"{{gacha_url}}"
+									],
+									"path": [
+										"update",
+										"1"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"auth": {
+						"type": "bearer",
+						"bearer": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiQWRtaW4iLCJleHAiOjE3MzIxMTU2MjV9.3nzN3P-QmnQURspCuNVechMeK9NZnbh8xa76jR1Uk7A",
+								"type": "string"
+							}
+						]
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"packages": {},
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"packages": {},
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "user_service",
+			"item": [
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "get_all_users",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{user_url}}/list",
+									"host": [
+										"{{user_url}}"
+									],
+									"path": [
+										"list"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get_user",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{user_url}}/2",
+									"host": [
+										"{{user_url}}"
+									],
+									"path": [
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update_user",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"marco2\",\r\n    \"psw\": \"prova2\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{user_url}}/update",
+									"host": [
+										"{{user_url}}"
+									],
+									"path": [
+										"update"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete_user",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{user_url}}/2/delete",
+									"host": [
+										"{{user_url}}"
+									],
+									"path": [
+										"2",
+										"delete"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Player",
+					"item": [
+						{
+							"name": "delete",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{user_url}}/delete",
+									"host": [
+										"{{user_url}}"
+									],
+									"path": [
+										"delete"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"marco\",\r\n    \"psw\": \"prova2\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{user_url}}/update",
+									"host": [
+										"{{user_url}}"
+									],
+									"path": [
+										"update"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "signup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test when data is missing or the username already exists",
+									"pm.test(\"Status code is 400 when incomplete data is provided or username already exists\", function () {",
+									"    pm.response.to.have.status(400);",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.be.oneOf([",
+									"        \"Incomplete data\",",
+									"        \"Username already exists\"]);",
+									"});",
+									"",
+									"// Test when user is successfully created",
+									"pm.test(\"Status code is 201 when user is added\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.equal(\"User added!\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiQWRtaW4iLCJleHAiOjE3MzE2MDAwMzl9.fnYeO4BcoDjvp_n4q6M5zx5slIWcguxYVlIIWxsKgSc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"marco\",\r\n    \"psw\": \"prova\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{user_url}}/signup",
+							"host": [
+								"{{user_url}}"
+							],
+							"path": [
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Assumendo che il token sia restituito nel corpo della risposta come \"token\"\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"// Salva il token come variabile globale o d'ambiente\r",
+									"pm.environment.set(\"jwtTokenAdmin\", jsonData.token); // Usa pm.globals.set() per una variabile globale\r",
+									"\r",
+									"// Facoltativo: Stampa il token nella console di Postman per debugging\r",
+									"console.log(\"JWT Token salvato:\", jsonData.token);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"admin\",\r\n    \"password\":\"gachana\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{user_url}}/login",
+							"host": [
+								"{{user_url}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login player",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Assumendo che il token sia restituito nel corpo della risposta come \"token\"\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"// Salva il token come variabile globale o d'ambiente\r",
+									"pm.environment.set(\"jwtTokenPlayer\", jsonData.token); // Usa pm.globals.set() per una variabile globale\r",
+									"\r",
+									"// Facoltativo: Stampa il token nella console di Postman per debugging\r",
+									"console.log(\"JWT Token salvato:\", jsonData.token);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"marco\",\r\n    \"password\":\"prova\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{user_url}}/login",
+							"host": [
+								"{{user_url}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "currency_service",
+			"item": [
+				{
+					"name": "Player",
+					"item": [
+						{
+							"name": "get_transactions",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{currency_url}}/transactions",
+									"host": [
+										"{{currency_url}}"
+									],
+									"path": [
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "buy_currency",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"amount\": 200.00,\r\n    \"card_number\": \"1234567812345678\",\r\n    \"expiry_date\": \"12/25\",\r\n    \"cvv\": \"123\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{currency_url}}/buy_currency",
+									"host": [
+										"{{currency_url}}"
+									],
+									"path": [
+										"buy_currency"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "wallet",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{currency_url}}/wallet",
+									"host": [
+										"{{currency_url}}"
+									],
+									"path": [
+										"wallet"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "spend_currency",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"amount\": 100.00\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{currency_url}}/spend_currency",
+									"host": [
+										"{{currency_url}}"
+									],
+									"path": [
+										"spend_currency"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "refund",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"token\": \"\"\r\n    \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{market_url}}/refund",
+									"host": [
+										"{{market_url}}"
+									],
+									"path": [
+										"refund"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "add_currency",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"token\": \"\"\r\n    \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{market_url}}/add_currency",
+									"host": [
+										"{{market_url}}"
+									],
+									"path": [
+										"add_currency"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "get_all_transactions",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{currency_url}}/transactions/list",
+									"host": [
+										"{{currency_url}}"
+									],
+									"path": [
+										"transactions",
+										"list"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get_user_transactions",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{currency_url}}/transactions/2",
+									"host": [
+										"{{currency_url}}"
+									],
+									"path": [
+										"transactions",
+										"2"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "market_service",
+			"item": [
+				{
+					"name": "Player",
+					"item": [
+						{
+							"name": "list",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{market_url}}/list",
+									"host": [
+										"{{market_url}}"
+									],
+									"path": [
+										"list"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "new-auction",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"gacha_id\": 1,\r\n    \"end_date\": \"2024-11-22\",\r\n    \"init_value\": 80.00\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{market_url}}/new-auction",
+									"host": [
+										"{{market_url}}"
+									],
+									"path": [
+										"new-auction"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "new-bid",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"market_id\": 1,\r\n    \"offer_value\": 85\r\n  \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{market_url}}/new-bid",
+									"host": [
+										"{{market_url}}"
+									],
+									"path": [
+										"new-bid"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "offers",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{market_url}}/1/offers",
+									"host": [
+										"{{market_url}}"
+									],
+									"path": [
+										"1",
+										"offers"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "accept",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"market_id\": 2,\r\n    \"buyer_id\": 1\r\n  \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{market_url}}/accept",
+									"host": [
+										"{{market_url}}"
+									],
+									"path": [
+										"accept"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "history",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{market_url}}/history",
+									"host": [
+										"{{market_url}}"
+									],
+									"path": [
+										"history"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "auction-details",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{market_url}}/auction-details/1",
+									"host": [
+										"{{market_url}}"
+									],
+									"path": [
+										"auction-details",
+										"1"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update-auction",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"init_value\": 85.00,\r\n    \"value_last_offer\": 100.00,\r\n    \"start_date\": \"2024-11-22\",\r\n    \"end_date\": \"2024-11-25\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{market_url}}/update-auction/1",
+									"host": [
+										"{{market_url}}"
+									],
+									"path": [
+										"update-auction",
+										"1"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "history-all",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{market_url}}/history/all",
+									"host": [
+										"{{market_url}}"
+									],
+									"path": [
+										"history",
+										"all"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "gacha_url",
+			"value": "http://localhost/gacha",
+			"type": "default"
+		}
+	]
+}
