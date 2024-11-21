@@ -1,0 +1,171 @@
+{
+  "openapi": "3.0.0",
+  "info":
+    {
+      "title": "Gacha Microservices API",
+      "version": "1.0.0",
+      "description": "API documentation for the Gacha microservice.",
+    },
+  "servers": [{ "url": "http://localhost:5001" }],
+  "paths":
+    {
+      "/collection":
+        {
+          "get":
+            {
+              "summary": "Get User Collection",
+              "description": "Retrieve the collection of Gachas owned by the user.",
+              "security": [{ "bearerAuth": [] }],
+              "responses":
+                {
+                  "200":
+                    {
+                      "description": "User collection retrieved successfully.",
+                    },
+                  "401": { "description": "Unauthorized or invalid token." },
+                },
+            },
+        },
+      "/collection/{gacha_id}":
+        {
+          "get":
+            {
+              "summary": "Get Specific Gacha",
+              "description": "Retrieve details of a specific Gacha owned by the user.",
+              "parameters":
+                [
+                  {
+                    "name": "gacha_id",
+                    "in": "path",
+                    "required": true,
+                    "schema": { "type": "integer" },
+                    "description": "ID of the Gacha.",
+                  },
+                ],
+              "security": [{ "bearerAuth": [] }],
+              "responses":
+                {
+                  "200":
+                    { "description": "Gacha details retrieved successfully." },
+                  "404":
+                    { "description": "Gacha not found or not owned by user." },
+                },
+            },
+        },
+      "/collection/available":
+        {
+          "get":
+            {
+              "summary": "Get Available Gachas",
+              "description": "Retrieve a list of Gachas not yet owned by the user.",
+              "security": [{ "bearerAuth": [] }],
+              "responses":
+                {
+                  "200":
+                    {
+                      "description": "Available Gachas retrieved successfully.",
+                    },
+                  "401": { "description": "Unauthorized or invalid token." },
+                },
+            },
+        },
+      "/roll":
+        {
+          "post":
+            {
+              "summary": "Roll Gacha",
+              "description": "Perform a random Gacha roll for the user.",
+              "security": [{ "bearerAuth": [] }],
+              "responses":
+                {
+                  "200":
+                    { "description": "Gacha roll completed successfully." },
+                  "401": { "description": "Unauthorized or invalid token." },
+                },
+            },
+        },
+      "/gachas-list":
+        {
+          "get":
+            {
+              "summary": "Get All Gachas",
+              "description": "Retrieve a list of all available Gachas.",
+              "security": [{ "bearerAuth": [] }],
+              "responses":
+                {
+                  "200":
+                    { "description": "All Gachas retrieved successfully." },
+                  "401": { "description": "Unauthorized or invalid token." },
+                },
+            },
+        },
+      "/add":
+        {
+          "post":
+            {
+              "summary": "Add New Gacha",
+              "description": "Add a new Gacha to the database.",
+              "requestBody":
+                {
+                  "required": true,
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            {
+                              "type": "object",
+                              "properties":
+                                {
+                                  "name": { "type": "string" },
+                                  "description": { "type": "string" },
+                                  "id_img": { "type": "string" },
+                                  "rarity": { "type": "string" },
+                                },
+                              "required": ["name", "rarity"],
+                            },
+                        },
+                    },
+                },
+              "security": [{ "bearerAuth": [] }],
+              "responses":
+                {
+                  "201": { "description": "Gacha added successfully." },
+                  "400": { "description": "Invalid request or missing data." },
+                },
+            },
+        },
+      "/delete/{gacha_id}":
+        {
+          "delete":
+            {
+              "summary": "Delete Gacha",
+              "description": "Delete a Gacha from the database.",
+              "parameters":
+                [
+                  {
+                    "name": "gacha_id",
+                    "in": "path",
+                    "required": true,
+                    "schema": { "type": "integer" },
+                    "description": "ID of the Gacha.",
+                  },
+                ],
+              "security": [{ "bearerAuth": [] }],
+              "responses":
+                {
+                  "200": { "description": "Gacha deleted successfully." },
+                  "500": { "description": "Error deleting the Gacha." },
+                },
+            },
+        },
+    },
+  "components":
+    {
+      "securitySchemes":
+        {
+          "bearerAuth":
+            { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" },
+        },
+    },
+}
