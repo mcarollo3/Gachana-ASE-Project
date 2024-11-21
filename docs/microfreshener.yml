@@ -1,9 +1,13 @@
 tosca_definitions_version: micro_tosca_yaml_1.1
-description: hello-world
+description: micro.tosca
 imports:
 - micro: https://di-unipi-socc.github.io/microTOSCA/1.1/microTOSCA.yaml
 topology_template:
   node_templates:
+    currency_service:
+      type: micro.nodes.Service
+      requirements:
+      - interaction: currency_db
     gacha_service:
       type: micro.nodes.Service
       requirements:
@@ -12,15 +16,11 @@ topology_template:
       type: micro.nodes.Service
       requirements:
       - interaction: market_db
-    transaction_service:
-      type: micro.nodes.Service
-      requirements:
-      - interaction: transaction_db
+    currency_db:
+      type: micro.nodes.Datastore
     gacha_db:
       type: micro.nodes.Datastore
     market_db:
-      type: micro.nodes.Datastore
-    transaction_db:
       type: micro.nodes.Datastore
     user_service:
       type: micro.nodes.Service
@@ -28,26 +28,18 @@ topology_template:
       - interaction: user_db
     user_db:
       type: micro.nodes.Datastore
-    API gateway:
-      type: micro.nodes.Service
+    api_gateway:
+      type: micro.nodes.MessageRouter
       requirements:
-      - interaction:
-          node: gacha_service
-          relationship: t
-      - interaction:
-          node: market_service
-          relationship: t
-      - interaction:
-          node: transaction_service
-          relationship: t
-      - interaction:
-          node: user_service
-          relationship: t
+      - interaction: currency_service
+      - interaction: gacha_service
+      - interaction: market_service
+      - interaction: user_service
   groups:
     adad:
       type: micro.groups.Edge
       members:
-      - API gateway
+      - api_gateway
   relationship_templates:
     t:
       type: micro.relationships.InteractsWith
