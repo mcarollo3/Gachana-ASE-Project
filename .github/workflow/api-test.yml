@@ -1,4 +1,4 @@
-name: Run Postman API Tests with Docker
+name: Test Microservices Application
 
 on:
   push:
@@ -9,38 +9,41 @@ on:
       - main
 
 jobs:
-  api-tests:
+  test:
     runs-on: ubuntu-latest
-    services:
-      docker:
-        image: docker:19.03.12
-        options: --privileged
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Check out code
+      uses: actions/checkout@v3
 
-      - name: Set up Docker Compose
-        uses: docker/setup-buildx-action@v2
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "16"
+    - name: Start application with Docker Compose
+      run: |
+        docker compose up -d --build
 
-      - name: Install Newman
-        run: |
-          npm install -g newman
+    - name: Wait for services
+      run: |
+        echo "Waiting for services to be ready..."
+        sleep 15
 
-      - name: Build and start containers with Docker Compose
-        run: |
-          docker-compose up -d  # Avvia i contenitori in modalità distacco (background)
-          sleep 10  # Aspetta che i container siano pronti a ricevere le richieste
+    - name: Install Newman
+      run: |
+        npm install -g newman
 
-      - name: Run Postman API tests
-        run: |
-          newman run postman/api_collection.json --env-var "baseUrl=http://localhost:5000"
+    - name: Run Postman tests
+      env:
+        BASE_URL: "http://localhost"
+      run: |
+        newman run Gachana.postman_collection.json \
+          --environment env.postman_environment.json \
+          --delay-request 1000 \
+          --timeout 60000 \
+          --reporters cli
 
-      - name: Stop Docker containers
-        run: |
-          docker-compose down  # Ferma e rimuove i contenitori
+    - name: Stop application
+      if: always()
+      run: |
+        docker compose down
+
