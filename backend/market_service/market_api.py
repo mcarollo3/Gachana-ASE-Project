@@ -57,10 +57,10 @@ def post_market_item():
     connection = get_db_connection()
     cursor = connection.cursor()
     query = """
-    INSERT INTO Market (gacha_id, user_id, init_value, start_date, end_date)
-    VALUES (%s, %s, %s, %s, %s);
+    INSERT INTO Market (gacha_id, user_id, init_value, value_last_offer, start_date, end_date)
+    VALUES (%s, %s, %s, %s, %s, %s);
     """
-    cursor.execute(query, (gacha_id, user_id, init_value, start_date, end_date))
+    cursor.execute(query, (gacha_id, user_id, init_value, 0, start_date, end_date))
     connection.commit()
     cursor.close()
     connection.close()
@@ -188,9 +188,6 @@ def get_offers(market_id):
 
     return jsonify({"market_id": market_id, "offers": offers_list}), 200
 
-# DA VERIFICARE
-
-# Accettare un'offerta
 @app.route('/accept', methods=['POST'])
 @token_required(role_required='Player')
 def accept_offer():
@@ -214,17 +211,28 @@ def accept_offer():
     cursor = connection.cursor()
 
     query_check_market = """
-    SELECT id,  gacha_id 
+    SELECT id, gacha_id 
     FROM Market 
     WHERE id = %s AND user_id = %s;
     """
     cursor.execute(query_check_market, (market_id, seller_id))
     market = cursor.fetchone()
 
-    gacha_id = market[1]
-
     if not market:
         return jsonify({"message": "Market not found or you are not the owner of this auction."}), 403
+
+    query_check_offers = """
+    SELECT COUNT(*) 
+    FROM Offers 
+    WHERE market_id = %s;
+    """
+    cursor.execute(query_check_offers, (market_id,))
+    offer_count = cursor.fetchone()[0]
+
+    if offer_count == 0:
+        return jsonify({"message": "No offers found for this market."}), 404
+
+    gacha_id = market[1]
 
     query_get_offer = """
     SELECT id, offer_value 
@@ -271,18 +279,17 @@ def accept_offer():
     cursor.close()
     connection.close()
 
-    expiration_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(min=5)
-    # Chiamata Refund Currency Service
+    expiration_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=5)
+   
     rejected_offers_jwt = jwt.encode({'dict': [{"user_id": user_id, "offer_value": str(value)} for user_id, value in rejected_offers], "gachaID": gacha_id, 'exp': expiration_time},
                        SECRET_KEY, algorithm="HS256")
-    # Chiamata collection/add Gacha Service
+
     add_new_gacha = jwt.encode({"userId": buyer_id, "gachaID": gacha_id, 'exp': expiration_time},
                        SECRET_KEY, algorithm="HS256")
-    # Chiamata add_currency Currency Service
+
     add_new_currency = jwt.encode({"userId": seller_id, "amount": offer_value, 'exp': expiration_time},
                        SECRET_KEY, algorithm="HS256")
-    
-    # usare seller_id e gacha_id per rimuovere gacha dalla collezione del seller
+   
     return jsonify({
         "message": "Offer accepted successfully.",
         "rejected_offers": rejected_offers_jwt,
@@ -438,4 +445,4 @@ def get_market_history():
     return jsonify(market_history), 200
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5002)
+    app.run(debug=True, host='0.0.0.0', port=5003)
