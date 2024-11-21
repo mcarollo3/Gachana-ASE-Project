@@ -1,4 +1,4 @@
-name: Test Microservices Application
+name: Test API Gachana
 
 on:
   push:
@@ -23,11 +23,6 @@ jobs:
       run: |
         docker compose up -d --build
 
-    - name: Wait for services
-      run: |
-        echo "Waiting for services to be ready..."
-        sleep 15
-
     - name: Install Newman
       run: |
         npm install -g newman
@@ -36,8 +31,8 @@ jobs:
       env:
         BASE_URL: "http://localhost"
       run: |
-        newman run Gachana.postman_collection.json \
-          --environment env.postman_environment.json \
+        newman run docs/Gachana.postman_collection.json \
+          --environment docs/env.postman_environment.json \
           --delay-request 1000 \
           --timeout 60000 \
           --reporters cli
