@@ -108,7 +108,7 @@ def get_available_gachas():
 @app.route('/collection/available/<int:gacha_id>', methods=['GET'])
 @token_required(role_required='Player')
 def get_available_gacha(gacha_id):
-    
+
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
     if not user_data:
@@ -344,9 +344,9 @@ def delete_gacha(gacha_id):
 
 # Market
 
-@app.route('/collection/add', methods=['POST'])
+@app.route('/collection/add/<int:gacha_id>', methods=['POST'])
 @token_required(role_required='Player')
-def add_gacha_to_user():
+def add_gacha_to_user(gacha_id):
 
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
