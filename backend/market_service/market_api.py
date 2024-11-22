@@ -38,6 +38,7 @@ def get_market_items():
 @app.route('/new-auction', methods=['POST'])
 @token_required(role_required='Player')
 def post_market_item():
+
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
     if not user_data:
@@ -47,7 +48,6 @@ def post_market_item():
     if not user_id:
         return jsonify({'message': 'Could not access user id.'}), 401
     
-
     data = request.get_json()
     gacha_id = data.get('gacha_id')
     start_date = datetime.now()
@@ -71,6 +71,7 @@ def post_market_item():
 @app.route('/new-bid', methods=['POST'])
 @token_required(role_required='Player')
 def make_offer():
+
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
     if not user_data:
@@ -143,6 +144,7 @@ def make_offer():
 @app.route('/<int:market_id>/offers', methods=['GET'])
 @token_required(role_required='Player')
 def get_offers(market_id):
+
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
     if not user_data:
@@ -191,6 +193,7 @@ def get_offers(market_id):
 @app.route('/accept', methods=['POST'])
 @token_required(role_required='Player')
 def accept_offer():
+
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
     if not user_data:
@@ -299,10 +302,10 @@ def accept_offer():
         "gacha_id": gacha_id
     }), 200
 
-
 @app.route('/history', methods=['GET'])
 @token_required(role_required='Player')
 def get_transaction_history():
+
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
     if not user_data:
@@ -330,7 +333,6 @@ def get_transaction_history():
         return jsonify({"error": "No market history found for this user"}), 404
 
     return jsonify(transactions), 200
-
 
 # Admin
 
@@ -381,7 +383,6 @@ def get_auction_details(market_id):
         "market_details": market_details,
         "current_offers": offers_details
     }), 200
-
 
 @app.route('/update-auction/<int:market_id>', methods=['PATCH'])
 @token_required(role_required='Admin')

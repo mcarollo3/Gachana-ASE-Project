@@ -3,8 +3,8 @@
 		"_postman_id": "6241a48d-f65b-48e9-80bc-feac845d5ee9",
 		"name": "Gachana",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39718315",
-		"_collection_link": "https://gachana.postman.co/workspace/ccd2cd2e-8e57-46e0-9577-e2befa5a4699/collection/39718315-6241a48d-f65b-48e9-80bc-feac845d5ee9?action=share&source=collection_link&creator=39718315"
+		"_exporter_id": "39572870",
+		"_collection_link": "https://gachana.postman.co/workspace/Gachana-Workspace~ccd2cd2e-8e57-46e0-9577-e2befa5a4699/collection/39718315-6241a48d-f65b-48e9-80bc-feac845d5ee9?action=share&source=collection_link&creator=39572870"
 	},
 	"item": [
 		{
@@ -65,25 +65,7 @@
 									"listen": "prerequest",
 									"script": {
 										"exec": [
-											"/*pm.sendRequest({",
-											"    url: 'https://localhost/user/login',",
-											"    method: 'POST',",
-											"    body: {",
-											"        mode: 'raw',",
-											"        raw: JSON.stringify({",
-											"            username: 'marco',",
-											"            psw: 'prova'",
-											"        })",
-											"    }",
-											"}, function (err, res) {",
-											"    if (err) {",
-											"        console.log(err);",
-											"        return;",
-											"    }",
-											"    // Extract token from the response and set it as an environment variable",
-											"    const token = res.json().token;",
-											"    pm.environment.set('auth_token', token);  // Save token to environment variable",
-											"});*/"
+											""
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -406,85 +388,17 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"// Validate status code",
-											"pm.test(\"Status code is 200\", function () {",
+											"pm.test(\"Status Code is 200\", function () {",
 											"    pm.response.to.have.status(200);",
 											"});",
 											"",
-											"// Validate response for a successful Gacha roll",
 											"pm.test(\"Response contains success message\", function () {",
-											"    const jsonData = pm.response.json();",
-											"    pm.expect(jsonData).to.be.an(\"object\");",
-											"    pm.expect(jsonData).to.have.property(\"message\");",
-											"    pm.expect(jsonData.message).to.match(/^User successfully rolled gacha \\d+\\.$/);",
+											"    const jsonResponse = pm.response.json();",
+											"    pm.expect(jsonResponse).to.have.property(\"message\");",
+											"    pm.expect(jsonResponse.message).to.match(/Gacha \\d+ successfully added to user \\d+/);",
 											"});",
 											"",
-											"// Validate response for invalid or missing token",
-											"pm.test(\"Invalid or missing token\", function () {",
-											"    if (pm.response.code === 401) {",
-											"        const jsonData = pm.response.json();",
-											"        pm.expect(jsonData.message).to.be.oneOf([",
-											"            \"Could not access user data.\",",
-											"            \"Could not access user id.\"",
-											"        ]);",
-											"    }",
-											"});",
-											""
-										],
-										"type": "text/javascript",
-										"packages": {}
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "noauth"
-								},
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n    \"token\": \"\"\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{gacha_url}}/collection/add",
-									"host": [
-										"{{gacha_url}}"
-									],
-									"path": [
-										"collection",
-										"add"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "remove",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"// Validate status code",
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"// Validate response for a successful Gacha roll",
-											"pm.test(\"Response contains success message\", function () {",
-											"    const jsonData = pm.response.json();",
-											"    pm.expect(jsonData).to.be.an(\"object\");",
-											"    pm.expect(jsonData).to.have.property(\"message\");",
-											"    pm.expect(jsonData.message).to.match(/^User successfully rolled gacha \\d+\\.$/);",
-											"});",
-											"",
-											"// Validate response for invalid or missing token",
+											"// Validate error for invalid or missing token",
 											"pm.test(\"Invalid or missing token\", function () {",
 											"    if (pm.response.code === 401) {",
 											"        const jsonData = pm.response.json();",
@@ -514,22 +428,79 @@
 								},
 								"method": "POST",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n    \"user_id\": \"\",\r\n    \"gacha_id\": \"\"\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
 								"url": {
-									"raw": "{{gacha_url}}/remove",
+									"raw": "{{gacha_url}}/collection/add/3",
 									"host": [
 										"{{gacha_url}}"
 									],
 									"path": [
-										"remove"
+										"collection",
+										"add",
+										"3"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "remove",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status Code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response contains success message\", function () {",
+											"    const jsonResponse = pm.response.json();",
+											"    pm.expect(jsonResponse).to.have.property(\"message\");",
+											"    pm.expect(jsonResponse.message).to.match(/Gacha with ID \\d+ removed from user \\d+/);",
+											"});",
+											"",
+											"pm.test(\"Authorization token was included\", function () {",
+											"    pm.expect(pm.request.headers.get('Authorization')).to.exist;",
+											"});",
+											"",
+											"// Validate error for invalid or missing token",
+											"pm.test(\"Invalid or missing token\", function () {",
+											"    if (pm.response.code === 401) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.be.oneOf([",
+											"            \"Could not access user data.\",",
+											"            \"Could not access user id.\"",
+											"        ]);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{gacha_url}}/remove/3",
+									"host": [
+										"{{gacha_url}}"
+									],
+									"path": [
+										"remove",
+										"3"
 									]
 								}
 							},
@@ -818,26 +789,6 @@
 									"listen": "prerequest",
 									"script": {
 										"exec": [
-											"// Pre-request script to set the token dynamically",
-											"pm.sendRequest({",
-											"    url: 'https://localhost/user/login',",
-											"    method: 'POST',",
-											"    body: {",
-											"        mode: 'raw',",
-											"        raw: JSON.stringify({",
-											"            username: 'admin',",
-											"            password: 'gachana'",
-											"        })",
-											"    }",
-											"}, function (err, res) {",
-											"    if (err) {",
-											"        console.log('Error fetching token: ', err);",
-											"        return;",
-											"    }",
-											"    // Extract token and save it as an environment variable",
-											"    const token = res.json().token;",
-											"    pm.environment.set('auth_token', token);",
-											"});",
 											""
 										],
 										"type": "text/javascript",
@@ -894,33 +845,12 @@
 											"    pm.expect(jsonData.message).to.equal(\"Gacha modified successfully.\");",
 											"});",
 											"",
-											"// Test for PATCH request with empty body",
-											"pm.sendRequest({",
-											"    url: pm.environment.get(\"http://localhost\") + \"/gacha/gachas/update/1\",",
-											"    method: 'POST',",
-											"    header: {",
-											"        \"Authorization\": \"Bearer <your_token>\",",
-											"        \"Content-Type\": \"application/json\"",
-											"    },",
-											"    body: {",
-											"        mode: 'raw',",
-											"        raw: \"\"",
-											"    }",
-											"}, function (err, res) {",
-											"    pm.test(\"Status code is 400 when no update data is provided\", function () {",
-											"        pm.response.to.have.status(400);",
-											"        const jsonData = pm.response.json();",
-											"        pm.expect(jsonData.message).to.equal(\"No data provided for update.\");",
-											"    });",
-											"});",
-											"",
-											"/*pm.test(\"Status code is 400 when no update data is provided\", function () {",
-											"    pm.expect(pm.request.body).to.eql({});",
+											"pm.test(\"Status code is 400 when no update data is provided\", function () {",
 											"    pm.response.to.have.status(400);",
 											"    const jsonData = pm.response.json();",
 											"    pm.expect(jsonData.message).to.equal(\"No data provided for update.\");",
 											"});",
-											"*/",
+											"",
 											"// Test for unauthorized access (Invalid or missing token)",
 											"pm.test(\"Status code is 401 for unauthorized access\", function () {",
 											"    if (pm.response.code === 401) {",
@@ -1028,6 +958,44 @@
 					"item": [
 						{
 							"name": "get_all_users",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful response (Status 200)",
+											"pm.test(\"Status code is 200 and users list is received\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('users');",
+											"    pm.expect(jsonData.users).to.be.an('array');",
+											"    pm.expect(jsonData.users.length).to.be.greaterThan(0);",
+											"});",
+											"",
+											"// Test for unauthorized access (Status 401)",
+											"pm.test(\"Status code is 401 when no token is provided\", function () {",
+											"    if (!pm.request.headers.has('Authorization')) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal('Unauthorized');",
+											"    }",
+											"});",
+											"",
+											"// Test for forbidden access (Status 403 for incorrect role)",
+											"pm.test(\"Status code is 403 when user is not Admin\", function () {",
+											"    // In a real test, simulate a non-Admin user and check for the response",
+											"    const jsonData = pm.response.json();",
+											"    if (jsonData.message === 'Forbidden') {",
+											"        pm.response.to.have.status(403);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1055,6 +1023,51 @@
 						},
 						{
 							"name": "get_user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful response (Status 200)",
+											"pm.test(\"Status code is 200 and user information is received\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('user');",
+											"    pm.expect(jsonData.user).to.be.an('object');",
+											"    pm.expect(jsonData.user.id).to.equal(1);  // Replace 1 with the actual user ID being tested",
+											"});",
+											"",
+											"// Test for unauthorized access (Status 401)",
+											"pm.test(\"Status code is 401 when no token is provided\", function () {",
+											"    if (!pm.request.headers.has('Authorization')) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal('Unauthorized');",
+											"    }",
+											"});",
+											"",
+											"// Test for forbidden access (Status 403 for incorrect role)",
+											"pm.test(\"Status code is 403 when user is not Admin\", function () {",
+											"    // In a real test, simulate a non-Admin user and check for the response",
+											"    const jsonData = pm.response.json();",
+											"    if (jsonData.message === 'Forbidden') {",
+											"        pm.response.to.have.status(403);",
+											"    }",
+											"});",
+											"",
+											"// Test for not found (Status 404)",
+											"pm.test(\"Status code is 404 when user is not found\", function () {",
+											"    pm.response.to.have.status(404);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal('User not found');",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1069,12 +1082,12 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{user_url}}/2",
+									"raw": "{{user_url}}/1",
 									"host": [
 										"{{user_url}}"
 									],
 									"path": [
-										"2"
+										"1"
 									]
 								}
 							},
@@ -1082,6 +1095,65 @@
 						},
 						{
 							"name": "update_user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful update (Status 200)",
+											"pm.test(\"Status code is 200 and user updated successfully\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal('User updated successfully');",
+											"});",
+											"",
+											"// Test for missing data (Status 400)",
+											"pm.test(\"Status code is 400 when no data is provided for update\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    if (jsonData.message === 'No data provided for update') {",
+											"        pm.response.to.have.status(400);",
+											"    }",
+											"});",
+											"",
+											"// Test for unauthorized access (Status 401)",
+											"pm.test(\"Status code is 401 when no token is provided\", function () {",
+											"    if (!pm.request.headers.has('Authorization')) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal('Unauthorized');",
+											"    }",
+											"});",
+											"",
+											"// Test for forbidden access (Status 403 when the user is not an Admin)",
+											"pm.test(\"Status code is 403 when the user is not an Admin\", function () {",
+											"    // If you're simulating a non-admin user",
+											"    const jsonData = pm.response.json();",
+											"    if (jsonData.message === 'Forbidden') {",
+											"        pm.response.to.have.status(403);",
+											"    }",
+											"});",
+											"",
+											"// Test for user not found (Status 404)",
+											"pm.test(\"Status code is 404 when user ID is not found\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    if (jsonData.message === 'User not found') {",
+											"        pm.response.to.have.status(404);",
+											"    }",
+											"});",
+											"",
+											"// Test for partial update (when some fields are provided)",
+											"pm.test(\"Status code is 200 for partial update with some fields provided\", function () {",
+											"    // Testing with only username updated",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal('User updated successfully');",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1118,6 +1190,57 @@
 						},
 						{
 							"name": "delete_user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful deletion (Status 200)",
+											"pm.test(\"Status code is 200 and user account deleted successfully\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal('User account deleted successfully!');",
+											"});",
+											"",
+											"// Test for unauthorized access (Status 401)",
+											"pm.test(\"Status code is 401 when no token is provided\", function () {",
+											"    if (!pm.request.headers.has('Authorization')) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal('Unauthorized');",
+											"    }",
+											"});",
+											"",
+											"// Test for forbidden access (Status 403 when the user is not an Admin)",
+											"pm.test(\"Status code is 403 when the user is not an Admin\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    if (jsonData.message === 'Forbidden') {",
+											"        pm.response.to.have.status(403);",
+											"    }",
+											"});",
+											"",
+											"// Test for user not found (Status 404)",
+											"pm.test(\"Status code is 404 when user ID is not found\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    if (jsonData.message === 'User not found') {",
+											"        pm.response.to.have.status(404);",
+											"    }",
+											"});",
+											"",
+											"// Test for deleting a non-existent user (Status 404)",
+											"pm.test(\"Status code is 404 when user does not exist\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    if (jsonData.message === 'User not found') {",
+											"        pm.response.to.have.status(404);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1160,6 +1283,52 @@
 					"item": [
 						{
 							"name": "delete",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful deletion (Status 200)",
+											"pm.test(\"Status code is 200 and user account deleted successfully\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal('User account deleted successfully!');",
+											"});",
+											"",
+											"// Test for missing Authorization header (Status 401)",
+											"pm.test(\"Status code is 401 when no token is provided\", function () {",
+											"    if (!pm.request.headers.has('Authorization')) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal('Unauthorized');",
+											"    }",
+											"});",
+											"",
+											"// Test for invalid token (Status 401)",
+											"pm.test(\"Status code is 401 for invalid token\", function () {",
+											"    const token = 'Bearer invalid_token'; // Replace with an invalid token",
+											"    pm.request.headers.add({ key: 'Authorization', value: token });",
+											"    pm.sendRequest(pm.request, function (err, res) {",
+											"        pm.expect(res).to.have.status(401);",
+											"        const jsonData = res.json();",
+											"        pm.expect(jsonData.message).to.equal('Unauthorized');",
+											"    });",
+											"});",
+											"",
+											"// Test for deletion when the user does not exist (Status 404)",
+											"pm.test(\"Status code is 404 if the user does not exist\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    if (jsonData.message === 'User not found') {",
+											"        pm.response.to.have.status(404);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1196,6 +1365,98 @@
 						},
 						{
 							"name": "update",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful user information update (Status 200)",
+											"pm.test(\"User information updated successfully\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal('User information updated successfully');",
+											"});",
+											"",
+											"// Test for successful wallet update (Status 200)",
+											"pm.test(\"Wallet updated successfully\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.include('added to your wallet successfully');",
+											"});",
+											"",
+											"// Test for missing data in the request body (Status 400)",
+											"pm.test(\"Status code is 400 if no data is provided for update\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    if (jsonData.message === 'No data provided for update') {",
+											"        pm.response.to.have.status(400);",
+											"        pm.expect(jsonData.message).to.equal('No data provided for update');",
+											"    }",
+											"});",
+											"",
+											"// Test for invalid token (Status 401)",
+											"pm.test(\"Status code is 401 for invalid token\", function () {",
+											"    const token = 'Bearer invalid_token'; // Replace with an invalid token",
+											"    pm.request.headers.add({ key: 'Authorization', value: token });",
+											"    pm.sendRequest(pm.request, function (err, res) {",
+											"        pm.expect(res).to.have.status(401);",
+											"        const jsonData = res.json();",
+											"        pm.expect(jsonData.message).to.equal('Unauthorized');",
+											"    });",
+											"});",
+											"",
+											"// Test for invalid wallet amount (Status 400)",
+											"pm.test(\"Status code is 400 for invalid wallet amount\", function () {",
+											"    const invalidData = {",
+											"        \"amount\": -100,",
+											"        \"card_number\": \"1234567812345678\",",
+											"        \"expiry_date\": \"12/25\",",
+											"        \"cvv\": \"123\"",
+											"    };",
+											"    pm.request.body.raw = JSON.stringify(invalidData);",
+											"    pm.sendRequest(pm.request, function (err, res) {",
+											"        pm.expect(res).to.have.status(400);",
+											"        const jsonData = res.json();",
+											"        pm.expect(jsonData.message).to.equal('Invalid amount. Must be greater than zero.');",
+											"    });",
+											"});",
+											"",
+											"// Test for missing card details (Status 400)",
+											"pm.test(\"Status code is 400 for missing card details\", function () {",
+											"    const invalidPaymentData = {",
+											"        \"amount\": 100,",
+											"        \"expiry_date\": \"12/25\",",
+											"        \"cvv\": \"123\"",
+											"    };",
+											"    pm.request.body.raw = JSON.stringify(invalidPaymentData);",
+											"    pm.sendRequest(pm.request, function (err, res) {",
+											"        pm.expect(res).to.have.status(400);",
+											"        const jsonData = res.json();",
+											"        pm.expect(jsonData.message).to.equal('Invalid card details. All fields are required.');",
+											"    });",
+											"});",
+											"",
+											"// Test for failed payment (Status 400)",
+											"pm.test(\"Status code is 400 if payment fails\", function () {",
+											"    const failedPaymentData = {",
+											"        \"amount\": 100,",
+											"        \"card_number\": \"invalid_card_number\",",
+											"        \"expiry_date\": \"12/25\",",
+											"        \"cvv\": \"123\"",
+											"    };",
+											"    pm.request.body.raw = JSON.stringify(failedPaymentData);",
+											"    pm.sendRequest(pm.request, function (err, res) {",
+											"        pm.expect(res).to.have.status(400);",
+											"        const jsonData = res.json();",
+											"        pm.expect(jsonData.message).to.equal('Payment failed. Please check your card details.');",
+											"    });",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1254,7 +1515,30 @@
 									"    const jsonData = pm.response.json();",
 									"    pm.expect(jsonData.message).to.equal(\"User added!\");",
 									"});",
-									""
+									"",
+									"// Test for missing username or password (Status 400)",
+									"pm.test(\"Status code is 400 when username or password is missing\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    if (!pm.request.body.raw.username || !pm.request.body.raw.psw) {",
+									"        pm.response.to.have.status(400);",
+									"        pm.expect(jsonData.message).to.equal('Incomplete data');",
+									"    }",
+									"});",
+									"",
+									"// Test for username already exists (Status 400)",
+									"pm.test(\"Status code is 400 when username already exists\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.message === 'Username already exists') {",
+									"        pm.response.to.have.status(400);",
+									"        pm.expect(jsonData.message).to.equal('Username already exists');",
+									"    }",
+									"});",
+									"",
+									"// Test for a successful response (message in body)",
+									"pm.test(\"Message should be 'User added!'\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.equal('User added!');",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -1352,6 +1636,54 @@
 					"response": []
 				},
 				{
+					"name": "logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{user_url}}/logout",
+							"host": [
+								"{{user_url}}"
+							],
+							"path": [
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "login player",
 					"event": [
 						{
@@ -1366,7 +1698,20 @@
 									"\r",
 									"// Facoltativo: Stampa il token nella console di Postman per debugging\r",
 									"console.log(\"JWT Token salvato:\", jsonData.token);\r",
-									""
+									"\r",
+									"// Test for successful login (Status 200)\r",
+									"pm.test(\"Status code is 200 and token is received\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.have.property('token');\r",
+									"});\r",
+									"\r",
+									"// Test for invalid credentials (Status 401)\r",
+									"/*pm.test(\"Status code is 401 and invalid credentials message\", function () {\r",
+									"    pm.response.to.have.status(401);\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.equal('Invalid credentials');\r",
+									"});*/"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -1407,6 +1752,45 @@
 					"item": [
 						{
 							"name": "get_transactions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful response",
+											"pm.test(\"Status code is 200 when transactions are retrieved successfully\", function () {",
+											"    if (pm.response.status === 200) {",
+											"        pm.response.to.have.status(200);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData).to.be.an('array');",
+											"        pm.expect(jsonData.length).to.be.greaterThan(0);",
+											"    }",
+											"});",
+											"",
+											"// Test for no transactions found",
+											"pm.test(\"Status code is 404 when no transactions are found\", function () {",
+											"    if (pm.response.status === 404) {",
+											"        pm.response.to.have.status(404);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"No transactions found for the user.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for unauthorized access",
+											"pm.test(\"Status code is 401 for unauthorized access\", function () {",
+											"    if (pm.response.status === 401) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1434,6 +1818,49 @@
 						},
 						{
 							"name": "buy_currency",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for invalid amount",
+											"pm.test(\"Status code is 400 when the amount is missing or invalid\", function () {",
+											"    if (pm.response.status === 400) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.include(\"Invalid amount\");",
+											"    }",
+											"});",
+											"",
+											"// Test for invalid card details",
+											"pm.test(\"Status code is 400 when card details are missing or incomplete\", function () {",
+											"    if (pm.response.status === 400) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.include(\"Invalid card details\");",
+											"    }",
+											"});",
+											"",
+											"// Test for payment failure",
+											"pm.test(\"Status code is 400 when payment simulation fails\", function () {",
+											"    if (pm.response.status === 400) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.include(\"Payment failed\");",
+											"    }",
+											"});",
+											"",
+											"// Test for successful transaction",
+											"pm.test(\"Status code is 200 when funds are added successfully\", function () {",
+											"    if (pm.response.status === 200) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.include(\"added to your wallet successfully\");",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1470,6 +1897,47 @@
 						},
 						{
 							"name": "wallet",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful wallet retrieval",
+											"pm.test(\"Status code is 200 when wallet is retrieved\", function () {",
+											"    if (pm.response.status === 200) {",
+											"        pm.response.to.have.status(200);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData).to.be.an('array');",
+											"        pm.expect(jsonData.length).to.equal(1); // Ensure exactly one wallet record",
+											"        pm.expect(jsonData[0]).to.have.property('wallet');",
+											"        pm.expect(jsonData[0].wallet).to.be.a('number'); // Wallet should be a numeric value",
+											"    }",
+											"});",
+											"",
+											"// Test for no wallet found",
+											"pm.test(\"Status code is 404 when no wallet is found\", function () {",
+											"    if (pm.response.status === 404) {",
+											"        pm.response.to.have.status(404);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"No wallet found for the user.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for unauthorized access",
+											"pm.test(\"Status code is 401 for unauthorized access\", function () {",
+											"    if (pm.response.status === 401) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1497,6 +1965,62 @@
 						},
 						{
 							"name": "spend_currency",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful deduction",
+											"pm.test(\"Status code is 200 when funds are deducted\", function () {",
+											"    if (pm.response.status === 200) {",
+											"        pm.response.to.have.status(200);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.include(\"deducted from your wallet successfully!\");",
+											"    }",
+											"});",
+											"",
+											"// Test for insufficient funds",
+											"pm.test(\"Status code is 400 when funds are insufficient\", function () {",
+											"    if (pm.response.status === 400) {",
+											"        pm.response.to.have.status(400);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Insufficient funds in wallet.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for invalid or missing amount",
+											"pm.test(\"Status code is 400 when amount is invalid\", function () {",
+											"    if (pm.response.status === 400) {",
+											"        pm.response.to.have.status(400);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Invalid amount. Must be greater than zero.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for wallet not found",
+											"pm.test(\"Status code is 404 when wallet is not found\", function () {",
+											"    if (pm.response.status === 404) {",
+											"        pm.response.to.have.status(404);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Wallet not found for the user.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for unauthorized access",
+											"pm.test(\"Status code is 401 for unauthorized access\", function () {",
+											"    if (pm.response.status === 401) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1610,6 +2134,43 @@
 					"item": [
 						{
 							"name": "get_all_transactions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful response",
+											"pm.test(\"Status code is 200 when all transactions are retrieved\", function () {",
+											"    if (pm.response.status === 200) {",
+											"        pm.response.to.have.status(200);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData).to.be.an('array');",
+											"    }",
+											"});",
+											"",
+											"// Test for unauthorized access",
+											"pm.test(\"Status code is 401 for unauthorized access\", function () {",
+											"    if (pm.response.status === 401) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for no transactions (if applicable)",
+											"pm.test(\"Transactions list is empty when there are no records\", function () {",
+											"    if (pm.response.status === 200) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData).to.be.an('array').that.is.empty;",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1638,6 +2199,51 @@
 						},
 						{
 							"name": "get_user_transactions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful response",
+											"pm.test(\"Status code is 200 when user transactions are retrieved\", function () {",
+											"    if (pm.response.status === 200) {",
+											"        pm.response.to.have.status(200);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData).to.be.an('array');",
+											"        pm.expect(jsonData.length).to.be.greaterThan(0); // Ensure transactions exist",
+											"        pm.expect(jsonData[0]).to.have.property('id');",
+											"        pm.expect(jsonData[0]).to.have.property('user_id');",
+											"        pm.expect(jsonData[0]).to.have.property('old_wallet');",
+											"        pm.expect(jsonData[0]).to.have.property('new_wallet');",
+											"        pm.expect(jsonData[0]).to.have.property('description');",
+											"        pm.expect(jsonData[0]).to.have.property('date');",
+											"    }",
+											"});",
+											"",
+											"// Test for no transactions found",
+											"pm.test(\"Status code is 404 when no transactions are found\", function () {",
+											"    if (pm.response.status === 404) {",
+											"        pm.response.to.have.status(404);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"No transactions found for the specified user.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for unauthorized access",
+											"pm.test(\"Status code is 401 for unauthorized access\", function () {",
+											"    if (pm.response.status === 401) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1676,6 +2282,44 @@
 					"item": [
 						{
 							"name": "list",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful retrieval of market items",
+											"pm.test(\"Status code is 200 and market items are retrieved\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.be.an(\"array\");",
+											"    if (jsonData.length > 0) {",
+											"        pm.expect(jsonData[0]).to.have.property(\"id\");",
+											"        pm.expect(jsonData[0]).to.have.property(\"gacha_id\");",
+											"        pm.expect(jsonData[0]).to.have.property(\"user_id\");",
+											"        pm.expect(jsonData[0]).to.have.property(\"init_value\");",
+											"        pm.expect(jsonData[0]).to.have.property(\"value_last_offer\");",
+											"        pm.expect(jsonData[0]).to.have.property(\"start_date\");",
+											"        pm.expect(jsonData[0]).to.have.property(\"end_date\");",
+											"    } else {",
+											"        console.log(\"Market list is empty.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for empty market",
+											"pm.test(\"Handles empty market response gracefully\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    if (jsonData.length === 0) {",
+											"        console.log(\"No items in the market.\");",
+											"        pm.expect(jsonData).to.be.an(\"array\").that.is.empty;",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"method": "GET",
 								"header": [],
@@ -1693,6 +2337,51 @@
 						},
 						{
 							"name": "new-auction",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful auction creation",
+											"pm.test(\"Status code is 201 and auction is created\", function () {",
+											"    pm.response.to.have.status(201);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal(\"Item listed for sale.\");",
+											"});",
+											"",
+											"// Test for missing token (unauthorized access)",
+											"pm.test(\"Status code is 401 when no token is provided\", function () {",
+											"    if (pm.request.headers.has(\"Authorization\")) {",
+											"        pm.expect(pm.response.code).to.not.equal(401); // Token exists, should not return 401",
+											"    } else {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for missing required fields",
+											"pm.test(\"Status code is 400 for missing required fields\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    if (pm.response.code === 400) {",
+											"        pm.expect(jsonData.message).to.include(\"Invalid\");",
+											"    }",
+											"});",
+											"",
+											"// Test for invalid data",
+											"pm.test(\"Status code is 500 for invalid data\", function () {",
+											"    if (pm.response.code === 500) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.include(\"Error\");",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1729,6 +2418,59 @@
 						},
 						{
 							"name": "new-bid",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful bid placement or update",
+											"pm.test(\"Status code is 200 and bid processed successfully\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.be.oneOf([",
+											"    \"Offer placed successfully.\",",
+											"    \"Offer placed successfully.\"]);",
+											"});",
+											"",
+											"// Test for missing token (unauthorized access)",
+											"pm.test(\"Status code is 401 when no token is provided\", function () {",
+											"    if (!pm.request.headers.has(\"Authorization\")) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for missing required fields",
+											"pm.test(\"Status code is 400 for missing required fields\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    if (pm.response.code === 400) {",
+											"        pm.expect(jsonData.message).to.include(\"Market ID and offer value are required.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for attempting to bid on own auction",
+											"pm.test(\"Status code is 403 when bidding on own auction\", function () {",
+											"    if (pm.response.code === 403) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"You cannot bid on your own auction.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for non-existent market",
+											"pm.test(\"Status code is 404 for non-existent market\", function () {",
+											"    if (pm.response.code === 404) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Market not found.\");",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1765,6 +2507,50 @@
 						},
 						{
 							"name": "offers",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful offer retrieval",
+											"pm.test(\"Status code is 200 and offers retrieved successfully\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property(\"market_id\");",
+											"    pm.expect(jsonData).to.have.property(\"offers\").that.is.an(\"array\");",
+											"});",
+											"",
+											"// Test for missing token (unauthorized access)",
+											"pm.test(\"Status code is 401 when no token is provided\", function () {",
+											"    if (!pm.request.headers.has(\"Authorization\")) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for non-existent market",
+											"pm.test(\"Status code is 404 for non-existent market\", function () {",
+											"    if (pm.response.code === 404) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Market not found.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for unauthorized access",
+											"pm.test(\"Status code is 403 when unauthorized to view offers\", function () {",
+											"    if (pm.response.code === 403) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"You are not authorized to view offers for this auction.\");",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1800,6 +2586,72 @@
 						},
 						{
 							"name": "accept",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful offer acceptance",
+											"pm.test(\"Status code is 200 and offer accepted successfully\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property(\"message\", \"Offer accepted successfully.\");",
+											"    pm.expect(jsonData).to.have.property(\"rejected_offers\");",
+											"    pm.expect(jsonData).to.have.property(\"gacha_to_add\");",
+											"    pm.expect(jsonData).to.have.property(\"currency_to_add\");",
+											"    pm.expect(jsonData).to.have.property(\"seller_id\");",
+											"    pm.expect(jsonData).to.have.property(\"gacha_id\");",
+											"});",
+											"",
+											"// Test for unauthorized access (missing or invalid token)",
+											"pm.test(\"Status code is 401 when no valid token is provided\", function () {",
+											"    if (!pm.request.headers.has(\"Authorization\")) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for market not found or user not the owner of the market",
+											"pm.test(\"Status code is 403 if the market is not found or user is not the owner\", function () {",
+											"    if (pm.response.code === 403) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Market not found or you are not the owner of this auction.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for no offers found",
+											"pm.test(\"Status code is 404 if no offers exist for the market\", function () {",
+											"    if (pm.response.code === 404) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"No offers found for this market.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for invalid offer from the buyer (offer not found)",
+											"pm.test(\"Status code is 404 if the offer from the buyer is not found\", function () {",
+											"    if (pm.response.code === 404) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Offer not found for the specified buyer.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for invalid request (missing market_id or buyer_id)",
+											"pm.test(\"Status code is 400 when market_id or buyer_id is missing\", function () {",
+											"    const body = pm.request.body;",
+											"    if (!body || !body.market_id || !body.buyer_id) {",
+											"        pm.response.to.have.status(400);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Market ID and buyer ID are required.\");",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1836,6 +2688,61 @@
 						},
 						{
 							"name": "history",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful response (Status 200)",
+											"pm.test(\"Status code is 200 and returns transaction history\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.be.an('array');",
+											"    pm.expect(jsonData.length).to.be.above(0);",
+											"});",
+											"",
+											"// Test for no transactions found (Status 404)",
+											"pm.test(\"Status code is 404 if no market history is found\", function () {",
+											"    pm.response.to.have.status(404);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property(\"error\", \"No market history found for this user\");",
+											"});",
+											"",
+											"// Test for unauthorized access (missing or invalid token)",
+											"pm.test(\"Status code is 401 when no valid token is provided\", function () {",
+											"    if (!pm.request.headers.has(\"Authorization\")) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for invalid token or expired token (should return 401)",
+											"pm.test(\"Status code is 401 when token is invalid\", function () {",
+											"    pm.response.to.have.status(401);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"});",
+											"",
+											"// Test for valid token and response format (should return an array of transactions)",
+											"pm.test(\"Response is an array with the correct structure\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    // Ensure each transaction in the response contains expected fields",
+											"    jsonData.forEach(transaction => {",
+											"        pm.expect(transaction).to.have.property(\"user_seller_id\");",
+											"        pm.expect(transaction).to.have.property(\"user_buyer_id\");",
+											"        pm.expect(transaction).to.have.property(\"gacha_value\");",
+											"        pm.expect(transaction).to.have.property(\"id_gacha\");",
+											"        pm.expect(transaction).to.have.property(\"date\");",
+											"    });",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1875,6 +2782,63 @@
 					"item": [
 						{
 							"name": "auction-details",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful response (Status 200)",
+											"pm.test(\"Status code is 200 and returns auction details\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    ",
+											"    // Ensure the response contains the expected keys",
+											"    pm.expect(jsonData).to.have.property(\"market_details\");",
+											"    pm.expect(jsonData).to.have.property(\"current_offers\");",
+											"",
+											"    // Check if market details have the correct properties",
+											"    const marketDetails = jsonData.market_details;",
+											"    pm.expect(marketDetails).to.have.property(\"market_id\");",
+											"    pm.expect(marketDetails).to.have.property(\"gacha_id\");",
+											"    pm.expect(marketDetails).to.have.property(\"user_id\");",
+											"    pm.expect(marketDetails).to.have.property(\"initial_value\");",
+											"    pm.expect(marketDetails).to.have.property(\"last_offer_value\");",
+											"    pm.expect(marketDetails).to.have.property(\"start_date\");",
+											"    pm.expect(marketDetails).to.have.property(\"end_date\");",
+											"",
+											"    // Ensure offers are an array and each offer contains the right properties",
+											"    const offers = jsonData.current_offers;",
+											"    pm.expect(offers).to.be.an('array');",
+											"    offers.forEach(offer => {",
+											"        pm.expect(offer).to.have.property(\"offer_id\");",
+											"        pm.expect(offer).to.have.property(\"user_id\");",
+											"        pm.expect(offer).to.have.property(\"offer_value\");",
+											"    });",
+											"});",
+											"",
+											"// Test for not found market (Status 404)",
+											"pm.test(\"Status code is 404 if market not found\", function () {",
+											"    pm.response.to.have.status(404);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property(\"message\", \"Market not found.\");",
+											"});",
+											"",
+											"// Test for unauthorized access (missing or invalid token)",
+											"pm.test(\"Status code is 401 when no valid token is provided\", function () {",
+											"    if (!pm.request.headers.has(\"Authorization\")) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    }",
+											"});",
+											"",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1910,6 +2874,54 @@
 						},
 						{
 							"name": "update-auction",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful auction update (Status 200)",
+											"pm.test(\"Status code is 200 and returns auction updated message\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property(\"message\", \"Auction updated successfully.\");",
+											"});",
+											"",
+											"// Test for missing required fields (init_value and start_date) (Status 400)",
+											"pm.test(\"Status code is 400 when init_value or start_date is missing\", function () {",
+											"    pm.response.to.have.status(400);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property(\"message\", \"Initial value and start date are required.\");",
+											"});",
+											"",
+											"// Test for market not found (Status 404)",
+											"pm.test(\"Status code is 404 when market not found\", function () {",
+											"    pm.response.to.have.status(404);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property(\"message\", \"Market not found.\");",
+											"});",
+											"",
+											"// Test for unauthorized access (missing or invalid token)",
+											"pm.test(\"Status code is 401 when no valid token is provided\", function () {",
+											"    if (!pm.request.headers.has(\"Authorization\")) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for invalid token or expired token (should return 401)",
+											"pm.test(\"Status code is 401 when token is invalid\", function () {",
+											"    pm.response.to.have.status(401);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",
@@ -1954,6 +2966,40 @@
 						},
 						{
 							"name": "history-all",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Test for successful response (Status 200)",
+											"pm.test(\"Status code is 200 and returns market history\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.be.an('array');",
+											"});",
+											"",
+											"// Test for unauthorized access (missing or invalid token)",
+											"pm.test(\"Status code is 401 when no valid token is provided\", function () {",
+											"    if (!pm.request.headers.has(\"Authorization\")) {",
+											"        pm.response.to.have.status(401);",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"    }",
+											"});",
+											"",
+											"// Test for invalid or expired token (should return 401)",
+											"pm.test(\"Status code is 401 when token is invalid\", function () {",
+											"    pm.response.to.have.status(401);",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "bearer",

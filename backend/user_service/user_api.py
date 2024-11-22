@@ -62,6 +62,10 @@ def registration():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
+
+    if not data.get('username') or not data.get('psw'):
+        return jsonify({'message': 'Incomplete data'}), 400
+    
     username, password = data.get('username'), data.get('password')
 
     connection = get_db_connection()
@@ -176,7 +180,11 @@ def delete_account():
     
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
-    user_id = user_data['user_id']  
+    if not user_data:
+        return jsonify({'message':'Could not access user data.'}), 401
+    user_id = user_data.get('user_id')
+    if not user_id:
+        return jsonify({'message':'Could not access user id.'}), 401
 
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -194,7 +202,11 @@ def update_account():
     
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
-    user_id = user_data['user_id']  
+    if not user_data:
+        return jsonify({'message':'Could not access user data.'}), 401
+    user_id = user_data.get('user_id')
+    if not user_id:
+        return jsonify({'message':'Could not access user id.'}), 401
 
     data = request.get_json()
 

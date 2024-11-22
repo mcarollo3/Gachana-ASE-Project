@@ -26,11 +26,17 @@ def simulate_payment(card_number, expiry_date, cvv):
 @app.route('/buy_currency', methods=['PATCH'])
 @token_required(role_required='Player')
 def add_funds():
+    
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
-    user_id = user_data['user_id']
+    if not user_data:
+        return jsonify({'message':'Could not access user data.'}), 401
+    user_id = user_data.get('user_id')
+    if not user_id:
+        return jsonify({'message':'Could not access user id.'}), 401
 
     data = request.get_json()
+    
     amount = Decimal(data.get('amount')) 
     card_number = data.get('card_number')
     expiry_date = data.get('expiry_date')
@@ -95,6 +101,7 @@ def add_funds():
 @app.route('/transactions', methods=['GET'])
 @token_required(role_required='Player')
 def get_transactions():
+
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
     if not user_data:
@@ -169,6 +176,7 @@ def get_user_transactions(user_id):
 @app.route('/wallet', methods=['GET'])
 @token_required(role_required='Player')
 def get_Wallet():
+
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
     if not user_data:
@@ -200,9 +208,14 @@ def get_Wallet():
 @app.route('/spend_currency', methods=['PATCH'])
 @token_required(role_required='Player')
 def spend_funds():
+
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
-    user_id = user_data['user_id']
+    if not user_data:
+        return jsonify({'message':'Could not access user data.'}), 401
+    user_id = user_data.get('user_id')
+    if not user_id:
+        return jsonify({'message':'Could not access user id.'}), 401
 
     data = request.get_json()
     amount = Decimal(data.get('amount'))  
