@@ -47,7 +47,7 @@ def get_user_collection():
         return jsonify({'message':'User owns no gachas.'}), 200
     return jsonify(user_collection), 200
 
-@app.route('/collection/<int:gacha_id>', methods=['GET']                )
+@app.route('/collection/<int:gacha_id>', methods=['GET'])
 @token_required(role_required='Player')
 def get_user_gacha(gacha_id):
 
@@ -108,6 +108,7 @@ def get_available_gachas():
 @app.route('/collection/available/<int:gacha_id>', methods=['GET'])
 @token_required(role_required='Player')
 def get_available_gacha(gacha_id):
+    
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     user_data = decode_token(token)
     if not user_data:
@@ -344,21 +345,16 @@ def delete_gacha(gacha_id):
 # Market
 
 @app.route('/collection/add', methods=['POST'])
+@token_required(role_required='Player')
 def add_gacha_to_user():
-    token = request.get_json().get('token')
-    if not token:
-        return jsonify({'message': 'Token is required.'}), 400
 
-    try:
-        decoded_token = decode_token(token) 
-    except Exception as e:
-        return jsonify({'message': f'Invalid token: {str(e)}'}), 401
-
-    buyer_id = decoded_token.get("userId")
-    gacha_id = decoded_token.get("gachaID")
-
-    if not buyer_id or not gacha_id:
-        return jsonify({'message': 'Token is missing userId or gachaID.'}), 400
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    user_data = decode_token(token)
+    if not user_data:
+        return jsonify({'message':'Could not access user data.'}), 401
+    user_id = user_data.get('user_id')
+    if not  user_id:
+        return jsonify({'message':'Could not access user id.'}), 401
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
@@ -372,7 +368,7 @@ def add_gacha_to_user():
             WHERE user_id = %s AND gacha_id = %s
         ) AS owns;
         """
-        cursor.execute(query_exists, (buyer_id, gacha_id))
+        cursor.execute(query_exists, (user_id, gacha_id))
         owns_dict = cursor.fetchone()
         already_owned = int(owns_dict["owns"])
 
@@ -382,14 +378,14 @@ def add_gacha_to_user():
             INSERT INTO Collection (user_id, gacha_id, quantity)
             VALUES (%s, %s, 1);
             """
-            cursor.execute(query_add, (buyer_id, gacha_id))
+            cursor.execute(query_add, (user_id, gacha_id))
         else:
             query_update = """
             UPDATE Collection
             SET quantity = quantity + 1
             WHERE user_id = %s AND gacha_id = %s;
             """
-            cursor.execute(query_update, (buyer_id, gacha_id))
+            cursor.execute(query_update, (user_id, gacha_id))
 
         connection.commit()
     except Exception as e:
@@ -399,18 +395,20 @@ def add_gacha_to_user():
         cursor.close()
         connection.close()
 
-    return jsonify({'message': f'Gacha {gacha_id} successfully added to user {buyer_id}.'}), 200
+    return jsonify({'message': f'Gacha {gacha_id} successfully added to user {user_id}.'}), 200
 
-@app.route('/remove', methods=['POST'])
-@token_required(role_required='Player')  
-def remove_gacha():
-    data = request.get_json()
-    if not data or 'user_id' not in data or 'gacha_id' not in data:
-        return jsonify({'message': 'user_id and gacha_id are required.'}), 400
-    
-    user_id = data['user_id']
-    gacha_id = data['gacha_id']
-    
+@app.route('/remove/<int:gacha_id>', methods=['POST'])
+@token_required(role_required='Player')
+def remove_gacha(gacha_id):
+
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    user_data = decode_token(token)
+    if not user_data:
+        return jsonify({'message':'Could not access user data.'}), 401
+    user_id = user_data.get('user_id')
+    if not  user_id:
+        return jsonify({'message':'Could not access user id.'}), 401
+
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     query = """
