@@ -12,11 +12,22 @@ if not SECRET_KEY:
 
 # Get DB Connection
 def get_db_connection():
+    ssl_ca = "/run/secrets/db_https_market_cert"
+    ssl_cert = "/run/secrets/db_https_market_cert"
+    ssl_key = "/run/secrets/db_https_market_key"
+
+    if not os.path.exists(ssl_ca) or not os.path.exists(ssl_cert) or not os.path.exists(ssl_key):
+        raise ValueError("One or more SSL certificate files are missing!")
+
     return mysql.connector.connect(
         host=os.environ.get("DB_HOST"),
         user=os.environ.get("DB_USER"),
         password=os.environ.get("DB_PASSWORD"),
-        database=os.environ.get("DB_NAME")
+        database=os.environ.get("DB_NAME"),
+        ssl_ca=ssl_ca,
+        ssl_cert=ssl_cert,
+        ssl_key=ssl_key,
+        
     )
 
 # Visualizzare oggetti in vendita
@@ -446,4 +457,4 @@ def get_market_history():
     return jsonify(market_history), 200
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5003)
+    app.run(debug=True, host='0.0.0.0', port=5003, ssl_context=('/run/secrets/https_market_cert', '/run/secrets/https_market_key'))

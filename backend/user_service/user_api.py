@@ -12,11 +12,22 @@ if not SECRET_KEY:
 
 # Get Connection DB
 def get_db_connection():
+    ssl_ca = "/run/secrets/db_https_user_cert"
+    ssl_cert = "/run/secrets/db_https_user_cert"
+    ssl_key = "/run/secrets/db_https_user_key"
+
+    if not os.path.exists(ssl_ca) or not os.path.exists(ssl_cert) or not os.path.exists(ssl_key):
+        raise ValueError("One or more SSL certificate files are missing!")
+
     return mysql.connector.connect(
         host=os.environ.get("DB_HOST"),
         user=os.environ.get("DB_USER"),
         password=os.environ.get("DB_PASSWORD"),
-        database=os.environ.get("DB_NAME")
+        database=os.environ.get("DB_NAME"),
+        ssl_ca=ssl_ca,
+        ssl_cert=ssl_cert,
+        ssl_key=ssl_key,
+        
     )
 
 # Gestione del token
@@ -66,7 +77,7 @@ def login():
     if not data.get('username') or not data.get('psw'):
         return jsonify({'message': 'Incomplete data'}), 400
     
-    username, password = data.get('username'), data.get('password')
+    username, password = data.get('username'), data.get('psw')
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
@@ -246,37 +257,8 @@ def update_account():
 
     return jsonify({'message': 'User information updated successfully'}), 200
 
-    token = request.headers.get('Authorization', '').replace('Bearer ', '')
-    user_data = decode_token(token)
-    user_id = user_data['user_id']
-
-    data = request.get_json()
-    amount = data.get('amount')
-    card_number = data.get('card_number')
-    expiry_date = data.get('expiry_date')
-    cvv = data.get('cvv')
-
-    if not amount or amount <= 0:
-        return jsonify({'message': 'Invalid amount. Must be greater than zero.'}), 400
-
-    if not card_number or not expiry_date or not cvv:
-        return jsonify({'message': 'Invalid card details. All fields are required.'}), 400
-
-    payment_successful = simulate_payment(card_number, expiry_date, cvv, amount)
-    if not payment_successful:
-        return jsonify({'message': 'Payment failed. Please check your card details.'}), 400
-
-    connection = get_db_connection()
-    cursor = connection.cursor()
-
-    cursor.execute("UPDATE UserData SET wallet = wallet + %s WHERE id = %s;", (amount, user_id))
-    connection.commit()
-
-    cursor.close()
-    connection.close()
-
-    return jsonify({'message': f'{amount} added to your wallet successfully!'}), 200
 
    
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000, ssl_context=('/run/secrets/https_user_cert', '/run/secrets/https_user_key'))
+

@@ -122,8 +122,6 @@ function Home() {
               </Typography>
             </>
           )}
-
-          <PersonalArea />
         </Box>
       </Box>
     </React.Fragment>

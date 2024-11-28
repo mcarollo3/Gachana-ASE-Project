@@ -11,11 +11,22 @@ if not SECRET_KEY:
 
 # Get Connection DB
 def get_db_connection():
+    ssl_ca = "/run/secrets/db_https_currency_cert"
+    ssl_cert = "/run/secrets/db_https_currency_cert"
+    ssl_key = "/run/secrets/db_https_currency_key"
+
+    if not os.path.exists(ssl_ca) or not os.path.exists(ssl_cert) or not os.path.exists(ssl_key):
+        raise ValueError("One or more SSL certificate files are missing!")
+
     return mysql.connector.connect(
         host=os.environ.get("DB_HOST"),
         user=os.environ.get("DB_USER"),
         password=os.environ.get("DB_PASSWORD"),
-        database=os.environ.get("DB_NAME")
+        database=os.environ.get("DB_NAME"),
+        ssl_ca=ssl_ca,
+        ssl_cert=ssl_cert,
+        ssl_key=ssl_key,
+        
     )
 
 def simulate_payment(card_number, expiry_date, cvv):
@@ -406,4 +417,4 @@ def add_new_currency():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5002)
+    app.run(debug=True, host='0.0.0.0', port=5002, ssl_context=('/run/secrets/https_currency_cert', '/run/secrets/https_currency_key'))
