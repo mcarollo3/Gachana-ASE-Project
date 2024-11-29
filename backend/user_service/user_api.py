@@ -3,14 +3,23 @@ import mysql.connector
 import os
 import jwt
 import datetime
+import base64
 from decode_auth_token import decode_token, token_required
-
+from cryptography.fernet import Fernet
+from get_secrets import get_secret_value
 app = Flask(__name__)
-SECRET_KEY = os.getenv('SECRET_KEY')
+
+
+SECRET_KEY = get_secret_value(os.environ.get('SECRET_KEY'))
 if not SECRET_KEY:
     raise ValueError("No SECRET_KEY set for Flask application")
 
-# Get Connection DB
+FERNET_KEY = base64.urlsafe_b64decode(get_secret_value("/run/secrets/cryptography_key")) 
+if not FERNET_KEY:
+    raise ValueError("No FERNET_KEY set for Flask application")
+cipher_suite = Fernet(FERNET_KEY)
+
+
 def get_db_connection():
     ssl_ca = "/run/secrets/db_https_user_cert"
     ssl_cert = "/run/secrets/db_https_user_cert"
@@ -30,6 +39,28 @@ def get_db_connection():
         
     )
 
+def create_initial_users():
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
+    cursor.execute("SELECT * FROM UserData WHERE username = 'admin';")
+    if not cursor.fetchone():
+        encrypted_psw_admin = cipher_suite.encrypt('gachana'.encode())
+        cursor.execute("INSERT INTO UserData (username, psw, role) VALUES (%s, %s, %s);", ('admin', encrypted_psw_admin, 'Admin'))
+        print("Admin user created.")
+    
+    cursor.execute("SELECT * FROM UserData WHERE username = 'player';")
+    if not cursor.fetchone():
+        encrypted_psw_player = cipher_suite.encrypt('prova'.encode())
+        cursor.execute("INSERT INTO UserData (username, psw, role) VALUES (%s, %s, %s);", ('player', encrypted_psw_player, 'Player'))
+        print("Player user created.")
+    
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+create_initial_users()
+
 # Gestione del token
 def generate_auth_token(user_id, role):
     expiration_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
@@ -47,6 +78,9 @@ def registration():
     psw = data['psw']
     role = 'Player'
    
+    
+    encrypted_psw = cipher_suite.encrypt(psw.encode())
+
     connection = get_db_connection()
     cursor = connection.cursor()
    
@@ -60,7 +94,7 @@ def registration():
 
     cursor.execute(
         "INSERT INTO UserData (username, psw, role) VALUES (%s, %s, %s);",
-        (username, psw, role)
+        (username, encrypted_psw, role)
     )
 
     connection.commit()
@@ -81,19 +115,62 @@ def login():
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
-    cursor.execute("SELECT id, role FROM UserData WHERE username=%s AND psw=%s", (username, password))
+    cursor.execute("SELECT id, role, psw FROM UserData WHERE username=%s", (username,))
     user = cursor.fetchone()
     cursor.close()
     connection.close()
-
+    print(f"psw: ", user['psw'])
     if user:
-        token = generate_auth_token(user['id'], user['role'])
-        return jsonify({'token': token})
+        decrypted_psw = cipher_suite.decrypt(user['psw']).decode()
+
+        if decrypted_psw == password:
+            token = generate_auth_token(user['id'], user['role'])
+            return jsonify({'token': token})
+
     return jsonify({'message': 'Invalid credentials'}), 401
 
 @app.route('/logout', methods=['POST'])
+@token_required(role_required=['Admin', 'Player'])
 def logout():
-    return jsonify({"message": "You have successfully logged out!"}), 200
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    
+    token_status = decode_token(token)
+    
+    if token_status == 'Token expired':
+        return jsonify({"message": "Token has expired!"}), 403
+    elif token_status == 'Invalid token':
+        return jsonify({"message": "Invalid token!"}), 403
+
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("SELECT token FROM TokenBlacklist WHERE token = %s;", (token,))
+        existing_token = cursor.fetchone()
+        
+        if existing_token:
+            return jsonify({"message": "Token is already logged out!"}), 400  
+
+        cursor.execute("INSERT INTO TokenBlacklist (token) VALUES (%s);", (token,))
+
+        cursor.execute("SELECT token FROM TokenBlacklist;")
+        tokens = cursor.fetchall() 
+
+        for row in tokens:
+            blacklisted_token = row[0]
+            token_status = decode_token(blacklisted_token)
+            if token_status == 'Token expired':
+                cursor.execute("DELETE FROM TokenBlacklist WHERE token = %s;", (blacklisted_token,))
+
+        connection.commit()
+        cursor.close()
+        connection.close()
+    except Exception as e:
+        return jsonify({"message": "An error occurred while logging out.", "error": str(e)}), 500
+
+    return jsonify({"message": "Logged out successfully!"}), 200
+
+
 
 
 # ADMIN ENDPOINT

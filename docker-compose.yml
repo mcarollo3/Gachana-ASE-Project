@@ -21,6 +21,7 @@ services:
       - db_password
       - db_https_user_cert
       - db_https_user_key
+    restart: always
 
   gacha_db:
     image: mysql:latest
@@ -43,6 +44,7 @@ services:
       - db_password
       - db_https_gacha_cert
       - db_https_gacha_key
+    restart: always
 
   market_db:
     image: mysql:latest
@@ -65,6 +67,7 @@ services:
       - db_password
       - db_https_market_cert
       - db_https_market_key
+    restart: always
 
   currency_db:
     image: mysql:latest
@@ -87,6 +90,7 @@ services:
       - db_password
       - db_https_currency_cert
       - db_https_currency_key
+    restart: always
 
   user_service:
     build:
@@ -108,11 +112,14 @@ services:
       - db_password
       - db_https_user_cert
       - db_https_user_key
+      - cryptography_key
     volumes:
       - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
+      - ./backend/utils/get_secrets.py:/app/get_secrets.py
     networks:
       - api_network_admin
       - api_network_player
+    restart: always
 
   gacha_service:
     build:
@@ -136,9 +143,11 @@ services:
       - db_https_gacha_key
     volumes:
       - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
+      - ./backend/utils/get_secrets.py:/app/get_secrets.py
     networks:
       - api_network_admin
       - api_network_player
+    restart: always
 
   currency_service:
     build:
@@ -162,9 +171,11 @@ services:
       - db_https_currency_key
     volumes:
       - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
+      - ./backend/utils/get_secrets.py:/app/get_secrets.py
     networks:
       - api_network_admin
       - api_network_player
+    restart: always
 
   market_service:
     build:
@@ -188,9 +199,11 @@ services:
       - db_https_market_key
     volumes:
       - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
+      - ./backend/utils/get_secrets.py:/app/get_secrets.py
     networks:
       - api_network_admin
       - api_network_player
+    restart: always
 
   nginx:
     image: nginx:latest
@@ -209,6 +222,7 @@ services:
     secrets:
       - https_gateway_admin_cert
       - https_gateway_admin_key
+    restart: always
 
   nginx_player:
     image: nginx:latest
@@ -227,6 +241,7 @@ services:
     secrets:
       - https_gateway_player_cert
       - https_gateway_player_key
+    restart: always
 
 volumes:
   user_data:
@@ -239,6 +254,8 @@ volumes:
     name: currency_db_volume
 
 secrets:
+  cryptography_key:
+    file: ./secrets/cryptography/key.txt
   https_gateway_admin_cert:
     file: ./secrets/https/gateway/admin/cert.pem
   https_gateway_admin_key:

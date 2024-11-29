@@ -13,9 +13,10 @@ CREATE TABLE UserData (
     id_image INT
 );
 
-INSERT INTO UserData (username, psw, role)
-VALUES ('admin', 'gachana', 'Admin');
+
+CREATE TABLE TokenBlacklist (
+    token VARCHAR(512) PRIMARY KEY,
+    blacklisted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 
-INSERT INTO UserData (username, psw, role)
-VALUES ('marco', 'prova', 'Player');
