@@ -1,17 +1,15 @@
-version: "3.8"
 services:
   user_db:
     image: mysql:latest
     container_name: user_db
     environment:
-      MYSQL_ROOT_PASSWORD: /run/secrets/db_root_password
       MYSQL_DATABASE: UserService
-      MYSQL_USER: /run/secrets/db_user
-      MYSQL_PASSWORD: /run/secrets/db_password
     volumes:
       - user_data:/var/lib/mysql
       - ./config_files/databases/user_service_db.sql:/docker-entrypoint-initdb.d/user_service_db.sql
       - ./config_files/user/my.cnf:/etc/mysql/my.cnf
+      - ./scripts/load_secrets.sh:/app/load_secrets.sh
+
     networks:
       - api_network_admin
       - api_network_player
@@ -21,20 +19,21 @@ services:
       - db_password
       - db_https_user_cert
       - db_https_user_key
+    entrypoint:
+      ["/bin/bash", "/app/load_secrets.sh", "docker-entrypoint.sh", "mysqld"]
     restart: always
 
   gacha_db:
     image: mysql:latest
     container_name: gacha_db
     environment:
-      MYSQL_ROOT_PASSWORD: /run/secrets/db_root_password
-      MYSQL_DATABASE: GachanaService
-      MYSQL_USER: /run/secrets/db_user
-      MYSQL_PASSWORD: /run/secrets/db_password
+      MYSQL_DATABASE: GachaService
     volumes:
       - gacha_data:/var/lib/mysql
       - ./config_files/databases/gacha_service_db.sql:/docker-entrypoint-initdb.d/gacha_service_db.sql
       - ./config_files/gacha/my.cnf:/etc/mysql/my.cnf
+      - ./scripts/load_secrets.sh:/app/load_secrets.sh
+
     networks:
       - api_network_admin
       - api_network_player
@@ -44,20 +43,21 @@ services:
       - db_password
       - db_https_gacha_cert
       - db_https_gacha_key
+    entrypoint:
+      ["/bin/bash", "/app/load_secrets.sh", "docker-entrypoint.sh", "mysqld"]
     restart: always
 
   market_db:
     image: mysql:latest
     container_name: market_db
     environment:
-      MYSQL_ROOT_PASSWORD: /run/secrets/db_root_password
       MYSQL_DATABASE: MarketService
-      MYSQL_USER: /run/secrets/db_user
-      MYSQL_PASSWORD: /run/secrets/db_password
+
     volumes:
       - market_data:/var/lib/mysql
       - ./config_files/databases/market_service_db.sql:/docker-entrypoint-initdb.d/market_service_db.sql
       - ./config_files/market/my.cnf:/etc/mysql/my.cnf
+      - ./scripts/load_secrets.sh:/app/load_secrets.sh
     networks:
       - api_network_admin
       - api_network_player
@@ -67,20 +67,20 @@ services:
       - db_password
       - db_https_market_cert
       - db_https_market_key
+    entrypoint:
+      ["/bin/bash", "/app/load_secrets.sh", "docker-entrypoint.sh", "mysqld"]
     restart: always
 
   currency_db:
     image: mysql:latest
     container_name: currency_db
     environment:
-      MYSQL_ROOT_PASSWORD: /run/secrets/db_root_password
       MYSQL_DATABASE: CurrencyService
-      MYSQL_USER: /run/secrets/db_user
-      MYSQL_PASSWORD: /run/secrets/db_password
     volumes:
       - currency_data:/var/lib/mysql
       - ./config_files/databases/currency_service_db.sql:/docker-entrypoint-initdb.d/currency_service_db.sql
       - ./config_files/currency/my.cnf:/etc/mysql/my.cnf
+      - ./scripts/load_secrets.sh:/app/load_secrets.sh
     networks:
       - api_network_admin
       - api_network_player
@@ -90,6 +90,8 @@ services:
       - db_password
       - db_https_currency_cert
       - db_https_currency_key
+    entrypoint:
+      ["/bin/bash", "/app/load_secrets.sh", "docker-entrypoint.sh", "mysqld"]
     restart: always
 
   user_service:
@@ -144,6 +146,7 @@ services:
     volumes:
       - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
       - ./backend/utils/get_secrets.py:/app/get_secrets.py
+      - ./gachas:/app/gachas
     networks:
       - api_network_admin
       - api_network_player

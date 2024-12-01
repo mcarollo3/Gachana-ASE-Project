@@ -5,15 +5,24 @@ USE GachaService;
 
 DROP TABLE IF EXISTS Collection;
 DROP TABLE IF EXISTS Gacha;
+DROP TABLE IF EXISTS Images;
 
+CREATE TABLE  Images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    data LONGBLOB
+);
 
 CREATE TABLE Gacha (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     description TEXT,
-    id_img VARCHAR(100),
+    name_img VARCHAR(100),
     rarity ENUM('Common','Uncommon', 'Rare', 'Super Rare', 'Legendary') NOT NULL
+   
 );
+
+
 
 
 CREATE TABLE Collection (
@@ -25,7 +34,7 @@ CREATE TABLE Collection (
 );
 
 
-INSERT INTO Gacha (name, description, id_img, rarity) VALUES
+INSERT INTO Gacha (name, description, name_img, rarity) VALUES
 ('Abu', 'A mischievous and clever monkey who is fiercely loyal to Aladdin, often getting into trouble but always helping his friend out of tight spots. (Aladdin)', 'abu', 'Common'),
 ('Donald Duck', 'A classic character known for his distinct voice, quick temper, and humorous personality, Donald is a determined and resilient duck who often gets into comical situations. (Various)', 'donald_duck', 'Common'),
 ('Goofy', 'A lovable, clumsy dog with a big heart and an optimistic outlook; Goofy’s goofy personality and infectious laugh make him a memorable and endearing friend. (Various)', 'goofy', 'Common'),
