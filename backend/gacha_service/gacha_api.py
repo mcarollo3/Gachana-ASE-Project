@@ -10,7 +10,7 @@ from io import BytesIO
 
 CERT_FILE = "/run/secrets/https_gacha_cert"
 KEY_FILE = "/run/secrets/https_gacha_key"
-CURRENCY_URL = "https://currency_service:5002/"
+CURRENCY_URL = "https://currency_service:5002"
 
 
 app = Flask(__name__)
@@ -559,7 +559,7 @@ def add_gacha_to_user():
 
 
 @app.route("/remove", methods=["POST"])
-@token_required(role_required="Player")
+@token_required(role_required="Admin")
 def remove_gacha():
     data = request.get_json()
     if not data or "user_id" not in data or "gacha_id" not in data:

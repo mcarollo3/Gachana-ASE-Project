@@ -14,9 +14,9 @@ if not SECRET_KEY:
 
 CERT_FILE = "/run/secrets/https_market_cert"
 KEY_FILE = "/run/secrets/https_market_key"
-CURRENCY_URL = "https://currency_service:5002/"
-GACHA_URL = "https://gacha_service:5001/"
-USER_URL = "https://user_service:5000/"
+CURRENCY_URL = "https://currency_service:5002"
+GACHA_URL = "https://gacha_service:5001"
+USER_URL = "https://user_service:5000"
 
 
 # Get DB Connection
@@ -41,6 +41,51 @@ def get_db_connection():
 def get_market_items():
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
+
+    query_get_expired_market_offers = """
+    SELECT o.user_id, o.offer_value
+    FROM Market m
+    JOIN Offers o ON m.id = o.market_id
+    WHERE m.end_date IS NOT NULL AND m.end_date < NOW();
+    """
+    cursor.execute(query_get_expired_market_offers)
+    expired_market_offers = cursor.fetchall()
+
+    offer_list = [
+        {"userId": offer["user_id"], "amount": offer["offer_value"]}
+        for offer in expired_market_offers
+    ]
+
+    if len(offer_list) > 0:
+        adminLogin = requests.post(
+            USER_URL + "/login",
+            json={"username": "admin", "psw": "gachana"},
+            cert=(CERT_FILE, KEY_FILE),
+            verify=False,
+        )
+
+        if adminLogin.status_code != 200:
+            return (
+                jsonify(adminLogin.json()),
+                adminLogin.status_code,
+            )
+
+        tokenAdmin = adminLogin.json().get("token")
+        refundUsers = requests.post(
+            CURRENCY_URL + "/refund",
+            json={offer_list},
+            headers={
+                "Authorization": "Bearer " + tokenAdmin,
+                "Content-Type": "application/json",
+            },
+            cert=(CERT_FILE, KEY_FILE),
+            verify=False,
+        )
+        if refundUsers.status_code != 200:
+            return (
+                jsonify(refundUsers.json()),
+                refundUsers.status_code,
+            )
 
     query_delete_expired = """
     DELETE FROM Market
@@ -367,7 +412,7 @@ def accept_offer():
             adminLogin.status_code,
         )
 
-    tokenAdmin = token = adminLogin.json().get("token")
+    tokenAdmin = adminLogin.json().get("token")
 
     query_get_rejected_offers = """
     SELECT user_id, offer_value 
@@ -381,7 +426,7 @@ def accept_offer():
         refundUsers = requests.post(
             CURRENCY_URL + "/refund",
             json={
-                {"user_id": user_id, "amount": svalue}
+                {"user_id": user_id, "amount": value}
                 for user_id, value in rejected_offers
             },
             headers={
@@ -432,21 +477,51 @@ def accept_offer():
         verify=False,
     )
 
-    add_new_market = jwt.encode(
-        {"userId": seller_id, "amount": offer_value, "exp": expiration_time},
-        SECRET_KEY,
-        algorithm="HS256",
+    if addGachaToBuyer.status_code != 200:
+        return (
+            jsonify(addGachaToBuyer.json()),
+            addGachaToBuyer.status_code,
+        )
+
+    removeGachaFromSeller = requests.post(
+        GACHA_URL + "/remove",
+        json={"user_id": buyer_id, "gacha_id": gacha_id},
+        headers={
+            "Authorization": "Bearer " + tokenAdmin,
+            "Content-Type": "application/json",
+        },
+        cert=(CERT_FILE, KEY_FILE),
+        verify=False,
     )
+
+    if removeGachaFromSeller.status_code != 200:
+        return (
+            jsonify(removeGachaFromSeller.json()),
+            removeGachaFromSeller.status_code,
+        )
+
+    addCurrencyToSeller = requests.post(
+        CURRENCY_URL + "/add_currency",
+        json={"user_id": seller_id, "amount": float(offer_value)},
+        headers={"Authorization": f"Bearer {tokenAdmin}"},
+        cert=(CERT_FILE, KEY_FILE),
+        verify=False,
+    )
+
+    if addCurrencyToSeller.status_code != 200:
+        try:
+            response_text = addCurrencyToSeller.json()
+        except ValueError:
+            response_text = addCurrencyToSeller.text
+        return (
+            jsonify({"message": "Failed to add currency", "details": response_text}),
+            addCurrencyToSeller.status_code,
+        )
 
     return (
         jsonify(
             {
                 "message": "Offer accepted successfully.",
-                "rejected_offers": rejected_offers_jwt,
-                "gacha_to_add": add_new_gacha,
-                "market_to_add": add_new_market,
-                "seller_id": seller_id,
-                "gacha_id": gacha_id,
             }
         ),
         200,

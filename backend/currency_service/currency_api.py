@@ -407,101 +407,19 @@ def refund():
     return jsonify({"message": "Refunds processed successfully!"}), 200
 
 
-@app.route("/spend_currency", methods=["PATCH"])
-@token_required(role_required="Player")
-def spend_funds():
-
-    token = request.headers.get("Authorization", "").replace("Bearer ", "")
-    user_data = decode_token(token)
-    if not user_data:
-        return jsonify({"message": "Could not access user data."}), 401
-    user_id = user_data.get("user_id")
-    if not user_id:
-        return jsonify({"message": "Could not access user id."}), 401
-
+@app.route("/add_currency", methods=["POST"])
+@token_required(role_required="Admin")
+def add_new_currency():
     data = request.get_json()
+
+    if not data:
+        return jsonify({"message": "Invalid or missing JSON payload."}), 400
+
+    user_id = data.get("user_id")
     amount = Decimal(data.get("amount"))
 
     if not amount or amount <= 0:
         return jsonify({"message": "Invalid amount. Must be greater than zero."}), 400
-
-    connection = get_db_connection()
-    cursor = connection.cursor()
-
-    try:
-        cursor.execute("SELECT id, wallet FROM Wallets WHERE user_id = %s;", (user_id,))
-        wallet_data = cursor.fetchone()
-
-        if not wallet_data:
-            return jsonify({"message": "Wallet not found for the user."}), 404
-
-        wallet_id, old_wallet = wallet_data
-
-        if old_wallet < amount:
-            return jsonify({"message": "Insufficient funds in wallet."}), 400
-
-        new_wallet = old_wallet - amount
-
-        cursor.execute(
-            "UPDATE Wallets SET wallet = %s WHERE id = %s;", (new_wallet, wallet_id)
-        )
-
-        description = f"Spent {amount} from wallet for an auction."
-        cursor.execute(
-            """
-            INSERT INTO Transaction_History (wallet_id, user_id, old_wallet, new_wallet, description, date)
-            VALUES (%s, %s, %s, %s, %s, NOW());
-            """,
-            (wallet_id, user_id, old_wallet, new_wallet, description),
-        )
-
-        connection.commit()
-
-    except Exception as e:
-        connection.rollback()
-        return (
-            jsonify(
-                {
-                    "message": "An error occurred while processing the transaction.",
-                    "error": str(e),
-                }
-            ),
-            500,
-        )
-
-    finally:
-        cursor.close()
-        connection.close()
-
-    return (
-        jsonify({"message": f"{amount} deducted from your wallet successfully!"}),
-        200,
-    )
-
-
-@app.route("/add_currency", methods=["POST"])
-def add_new_currency():
-    data = request.get_json()
-
-    token = data.get("token")
-    if not token:
-        return jsonify({"message": "Token is required."}), 400
-
-    try:
-        decoded_data = decode_token(token)
-    except Exception as e:
-        return jsonify({"message": "Invalid token.", "error": str(e)}), 400
-
-    user_id = decoded_data.get("userId")
-    amount = Decimal(decoded_data.get("amount", 0))
-
-    if not user_id or amount <= 0:
-        return (
-            jsonify(
-                {"message": "Invalid token data. userId and amount must be valid."}
-            ),
-            400,
-        )
 
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -522,13 +440,11 @@ def add_new_currency():
             wallet_data = cursor.fetchone()
 
         wallet_id, old_wallet = wallet_data
-
         new_wallet = old_wallet + amount
 
         cursor.execute(
             "UPDATE Wallets SET wallet = %s WHERE id = %s;", (new_wallet, wallet_id)
         )
-
         description = f"Added {amount} to wallet via currency addition."
         cursor.execute(
             """
@@ -537,7 +453,6 @@ def add_new_currency():
             """,
             (wallet_id, user_id, old_wallet, new_wallet, description),
         )
-
         connection.commit()
 
     except Exception as e:
