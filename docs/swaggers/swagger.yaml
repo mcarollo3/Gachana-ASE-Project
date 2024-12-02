@@ -1,0 +1,921 @@
+openapi: 3.0.0
+info:
+  title: Gachana API
+  description: API for managing users, gacha, currency, and the market in the Gachana system.
+  version: 1.0.0
+servers:
+  - url: https://localhost:443/admin
+    description: Admin API Gateway
+  - url: https://localhost:444
+    description: Player API Gateway
+
+paths:
+  /user/list:
+    get:
+      summary: "Get all users "
+      description: "Retrieve a list of all users in the system."
+      operationId: "getAllUsers"
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: "A list of users"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        username:
+                          type: string
+                        role:
+                          type: string
+
+  /user/{userId}:
+    get:
+      summary: "Get user details "
+      description: "Retrieve details of a specific user by user ID."
+      operationId: "getUserDetails"
+      tags:
+        - Admin
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: "ID of the user to fetch details"
+      responses:
+        "200":
+          description: "Details of the user"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      username:
+                        type: string
+                      role:
+                        type: string
+
+  /user/{userId}/update:
+    patch:
+      summary: "Update user information "
+      description: "Update the details of a specific user."
+      operationId: "updateUser"
+      tags:
+        - Admin
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: "ID of the user to update"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                psw:
+                  type: string
+                role:
+                  type: string
+                id_image:
+                  type: string
+      responses:
+        "200":
+          description: "User information updated successfully"
+
+  /user/{userId}/delete:
+    delete:
+      summary: "Delete user "
+      description: "Delete a user from the system."
+      operationId: "deleteUser"
+      tags:
+        - Admin
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: "ID of the user to delete"
+      responses:
+        "200":
+          description: "User account deleted successfully"
+  /gacha/:
+    get:
+      summary: Get all gachas
+      operationId: getGachas
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: A list of gachas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    rarity:
+                      type: string
+
+  /gacha/{gacha_id}:
+    get:
+      summary: Get a specific gacha by ID
+      operationId: getGacha
+      tags:
+        - Admin
+      parameters:
+        - name: gacha_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Gacha details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  description:
+                    type: string
+                  rarity:
+                    type: string
+        "404":
+          description: Gacha not found
+
+  /gacha/{gacha_id}/update:
+    patch:
+      summary: Update a gacha's details
+      operationId: updateGacha
+      tags:
+        - Admin
+      parameters:
+        - name: gacha_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                rarity:
+                  type: string
+                name_img:
+                  type: string
+      responses:
+        "200":
+          description: Gacha updated
+        "400":
+          description: Invalid data
+        "404":
+          description: Gacha not found
+
+  /gacha/add:
+    post:
+      summary: Add a new gacha
+      operationId: addGacha
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                rarity:
+                  type: string
+                name_img:
+                  type: string
+      responses:
+        "201":
+          description: Gacha added
+        "400":
+          description: Invalid request
+
+  /gacha/{gacha_id}/delete:
+    delete:
+      summary: Delete a specific gacha by ID
+      operationId: deleteGacha
+      tags:
+        - Admin
+      parameters:
+        - name: gacha_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Gacha deleted
+        "404":
+          description: Gacha not found
+        "500":
+          description: Error deleting gacha
+  /currency/add_currency:
+    post:
+      summary: Add currency to a user’s wallet
+      operationId: addNewCurrency
+      tags:
+        - Admin
+      parameters:
+        - name: Authorization
+          in: header
+          description: Bearer token for admin access
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                  description: User ID to add currency to
+                amount:
+                  type: number
+                  format: decimal
+                  description: Amount of currency to add
+      responses:
+        "200":
+          description: Currency added successfully
+        "400":
+          description: Invalid input or missing data
+        "500":
+          description: Internal server error
+
+  /currency/transactions/{user_id}:
+    get:
+      summary: Get transactions for a specific user
+      operationId: getUserTransactions
+      tags:
+        - Admin
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: User ID to get transactions for
+        - name: Authorization
+          in: header
+          description: Bearer token for admin access
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A list of transactions for the specified user
+        "404":
+          description: No transactions found for the specified user
+        "500":
+          description: Internal server error
+  /currency/refund:
+    post:
+      summary: Process refunds for users
+      operationId: refund
+      tags:
+        - Admin
+      parameters:
+        - name: Authorization
+          in: header
+          description: Bearer token for admin access
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      user_id:
+                        type: integer
+                      amount:
+                        type: number
+                        format: decimal
+      responses:
+        "200":
+          description: Refunds processed successfully
+        "400":
+          description: Invalid users list or data format
+        "500":
+          description: Internal server error
+
+  /user/update:
+    patch:
+      summary: "Update account "
+      description: "Update the player's own account information."
+      operationId: "updatePlayerAccount"
+      tags:
+        - Player
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                psw:
+                  type: string
+                id_image:
+                  type: string
+      responses:
+        "200":
+          description: "User information updated successfully"
+
+  /user/delete:
+    delete:
+      summary: "Delete account "
+      description: "Delete the player's own account."
+      operationId: "deletePlayerAccount"
+      tags:
+        - Player
+      responses:
+        "200":
+          description: "User account deleted successfully"
+
+  /user/signup:
+    post:
+      summary: "Sign up"
+      description: "Register a new user in the system."
+      operationId: "signUpUser"
+      tags:
+        - Public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                psw:
+                  type: string
+      responses:
+        "201":
+          description: "User added"
+        "400":
+          description: "Incomplete data or username already exists"
+
+  /user/login:
+    post:
+      summary: "Login"
+      description: "Authenticate a user and get a token."
+      operationId: "loginUser"
+      tags:
+        - Public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                psw:
+                  type: string
+      responses:
+        "200":
+          description: "Token generated"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        "400":
+          description: "Invalid credentials"
+
+  /user/logout:
+    post:
+      summary: "Logout"
+      description: "Logout a user by invalidating the token."
+      operationId: "logoutUser"
+      tags:
+        - Admin
+        - Player
+      responses:
+        "200":
+          description: "Logged out successfully"
+        "400":
+          description: "Token already logged out"
+        "403":
+          description: "Token expired or invalid"
+  /gacha/collection:
+    get:
+      summary: Get a user's gacha collection
+      operationId: getUserCollection
+      tags:
+        - Player
+      responses:
+        "200":
+          description: A list of gachas in the user's collection
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    name_img:
+                      type: string
+                    rarity:
+                      type: string
+                    quantity:
+                      type: integer
+
+  /gacha/collection/{gacha_id}:
+    get:
+      summary: Get a specific gacha in the user's collection
+      operationId: getUserGacha
+      tags:
+        - Player
+      parameters:
+        - name: gacha_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Gacha details from user's collection
+        "404":
+          description: Gacha not found or not owned by the user
+
+  /gacha/available:
+    get:
+      summary: Get all available gachas for the user to collect
+      operationId: getAvailableGachas
+      tags:
+        - Player
+      responses:
+        "200":
+          description: A list of available gachas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    rarity:
+                      type: string
+
+  /gacha/available/{gacha_id}:
+    get:
+      summary: Get details of a specific available gacha
+      operationId: getAvailableGacha
+      tags:
+        - Player
+      parameters:
+        - name: gacha_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Gacha details available to the user
+        "404":
+          description: Gacha not available for the user
+
+  /gacha/roll:
+    post:
+      summary: Roll a gacha
+      operationId: rollGacha
+      tags:
+        - Player
+      responses:
+        "200":
+          description: Successfully rolled a gacha
+        "400":
+          description: Error rolling gacha
+        "404":
+          description: Gacha not found
+        "401":
+          description: Unauthorized
+
+  /gacha/image/{image_name}:
+    get:
+      summary: Get an image for a specific gacha
+      operationId: getGachaImage
+      tags:
+        - Player
+      parameters:
+        - name: image_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Image found
+          content:
+            image/png: {}
+        "404":
+          description: Image not found
+  /currency/buy_currency:
+    patch:
+      summary: Add funds to player’s wallet
+      operationId: addFunds
+      tags:
+        - Player
+      parameters:
+        - name: Authorization
+          in: header
+          description: Bearer token for player access
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: decimal
+                card_number:
+                  type: string
+                  description: Card number to be used for payment
+                expiry_date:
+                  type: string
+                  description: Card expiry date
+                cvv:
+                  type: string
+                  description: Card CVV code
+      responses:
+        "200":
+          description: Funds added successfully
+        "400":
+          description: Invalid input or payment failure
+        "500":
+          description: Internal server error
+
+  /currency/transactions:
+    get:
+      summary: Get player’s transaction history
+      operationId: getPlayerTransactions
+      tags:
+        - Player
+      parameters:
+        - name: Authorization
+          in: header
+          description: Bearer token for player access
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A list of transactions for the player
+        "404":
+          description: No transactions found for the player
+        "500":
+          description: Internal server error
+  /currency/wallet:
+    get:
+      summary: Get player’s wallet balance
+      operationId: getPlayerWallet
+      tags:
+        - Player
+      parameters:
+        - name: Authorization
+          in: header
+          description: Bearer token for player access
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Wallet balance returned successfully
+        "404":
+          description: No wallet found for the player
+        "500":
+          description: Internal server error
+  /currency/transactions/list:
+    get:
+      summary: Get all transactions
+      operationId: getAllTransactionsForPlayerAndAdmin
+      tags:
+        - Admin
+        - Player
+      parameters:
+        - name: Authorization
+          in: header
+          description: Bearer token for access
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A list of transactions
+        "500":
+          description: Internal server error
+  /market/list:
+    get:
+      summary: Get all market items
+      operationId: getMarketItems
+      tags:
+        - Admin
+        - Player
+      responses:
+        "200":
+          description: List of market items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    userId:
+                      type: integer
+                    amount:
+                      type: number
+                      format: float
+        "404":
+          description: No auctions available
+
+  /market/new-auction:
+    post:
+      summary: Create a new auction
+      operationId: postMarketItem
+      tags:
+        - Admin
+      responses:
+        "201":
+          description: Auction successfully listed
+        "400":
+          description: Invalid input (e.g., end date format)
+        "401":
+          description: Unauthorized
+
+  /market/new-bid:
+    post:
+      summary: Make a new bid in an auction
+      operationId: makeOffer
+      tags:
+        - Player
+      responses:
+        "200":
+          description: Offer placed successfully
+        "400":
+          description: Invalid input (e.g., missing market_id or offer_value)
+        "401":
+          description: Unauthorized
+
+  /market/{market_id}/offers:
+    get:
+      summary: Get offers for a specific market
+      operationId: getOffersPlayer
+      tags:
+        - Player
+      parameters:
+        - name: market_id
+          in: path
+          required: true
+          description: The ID of the market to get offers for
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of offers for the market
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  market_id:
+                    type: integer
+                  offers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        offer_id:
+                          type: integer
+                        user_id:
+                          type: integer
+                        offer_value:
+                          type: number
+                          format: float
+        "404":
+          description: Market not found
+        "403":
+          description: You are not authorized to view offers
+
+  /market/auction-details/{market_id}:
+    get:
+      summary: Get details of a specific auction
+      operationId: getAuctionDetails
+      tags:
+        - Admin
+      parameters:
+        - name: market_id
+          in: path
+          required: true
+          description: The ID of the auction to get details for
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Auction details with current offers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  market_details:
+                    type: object
+                    properties:
+                      market_id:
+                        type: integer
+                      gacha_id:
+                        type: integer
+                      user_id:
+                        type: integer
+                      initial_value:
+                        type: string
+                      last_offer_value:
+                        type: string
+                      start_date:
+                        type: string
+                        format: date
+                      end_date:
+                        type: string
+                        format: date
+                  current_offers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        offer_id:
+                          type: integer
+                        user_id:
+                          type: integer
+                        offer_value:
+                          type: number
+                          format: float
+        "404":
+          description: Market not found
+
+  /market/update-auction/{market_id}:
+    patch:
+      summary: Update auction details
+      operationId: updateAuction
+      tags:
+        - Admin
+      parameters:
+        - name: market_id
+          in: path
+          required: true
+          description: The ID of the auction to update
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                init_value:
+                  type: number
+                  format: float
+                value_last_offer:
+                  type: number
+                  format: float
+                start_date:
+                  type: string
+                  format: date
+                end_date:
+                  type: string
+                  format: date
+      responses:
+        "200":
+          description: Auction updated successfully
+        "400":
+          description: Invalid input
+        "401":
+          description: Unauthorized
+        "404":
+          description: Auction not found
+
+  /market/accept:
+    post:
+      summary: Accept an offer for a market auction
+      operationId: acceptOffer
+      tags:
+        - Player
+      responses:
+        "200":
+          description: Offer accepted successfully
+        "400":
+          description: Invalid input (e.g., missing market_id or buyer_id)
+        "401":
+          description: Unauthorized
+        "404":
+          description: Market not found
+        "403":
+          description: You are not authorized to accept offer
+
+  /market/history:
+    get:
+      summary: Get transaction history for a user
+      operationId: getTransactionHistory
+      tags:
+        - Player
+      responses:
+        "200":
+          description: List of transactions for the player
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    user_seller_id:
+                      type: integer
+                    user_buyer_id:
+                      type: integer
+                    gacha_value:
+                      type: number
+                      format: float
+                    id_gacha:
+                      type: integer
+                    date:
+                      type: string
+                      format: date
+        "404":
+          description: No transaction history found
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []
