@@ -118,6 +118,7 @@ services:
     volumes:
       - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
       - ./backend/utils/get_secrets.py:/app/get_secrets.py
+      - ./backend/utils/make_requests.py:/app/make_requests.py
     networks:
       - api_network_admin
       - api_network_player
@@ -146,6 +147,7 @@ services:
     volumes:
       - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
       - ./backend/utils/get_secrets.py:/app/get_secrets.py
+      - ./backend/utils/make_requests.py:/app/make_requests.py
       - ./gachas:/app/gachas
     networks:
       - api_network_admin
@@ -175,6 +177,7 @@ services:
     volumes:
       - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
       - ./backend/utils/get_secrets.py:/app/get_secrets.py
+      - ./backend/utils/make_requests.py:/app/make_requests.py
     networks:
       - api_network_admin
       - api_network_player
@@ -203,6 +206,7 @@ services:
     volumes:
       - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
       - ./backend/utils/get_secrets.py:/app/get_secrets.py
+      - ./backend/utils/make_requests.py:/app/make_requests.py
     networks:
       - api_network_admin
       - api_network_player

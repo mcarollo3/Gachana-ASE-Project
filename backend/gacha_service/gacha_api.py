@@ -3,8 +3,8 @@ import mysql.connector
 import os
 from decode_auth_token import decode_token, token_required
 from get_secrets import get_secret_value
+from make_requests import make_request
 import random
-import requests
 from io import BytesIO
 
 
@@ -215,15 +215,15 @@ def get_available_gacha(gacha_id):
 @token_required(role_required="Player")
 def roll_gacha():
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
-    hasEnoughWallet = requests.post(
+    hasEnoughWallet = make_request(
         CURRENCY_URL + "/check_and_deduct",
-        json={"amount": 500},
+        method="POST",
+        data={"amount": 500},
         headers={
             "Authorization": "Bearer " + request.headers.get("Authorization", ""),
             "Content-Type": "application/json",
         },
         cert=(CERT_FILE, KEY_FILE),
-        verify=False,
     )
 
     if hasEnoughWallet.status_code == 200:
@@ -468,17 +468,18 @@ def delete_gacha(gacha_id):
         cursor.close()
         connection.close()
         if len(user_ids) > 0:
-            refundUsers = requests.post(
+            refundUsers = make_request(
                 CURRENCY_URL + "/refund",
-                json={"users": user_ids},
+                method="POST",
+                data={"users": user_ids},
                 headers={
                     "Authorization": "Bearer "
                     + request.headers.get("Authorization", ""),
                     "Content-Type": "application/json",
                 },
                 cert=(CERT_FILE, KEY_FILE),
-                verify=False,
             )
+
             if refundUsers.status_code == 200:
                 return (
                     jsonify(
