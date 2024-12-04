@@ -73,62 +73,48 @@ def check_and_deduct_wallet():
     amount_to_deduct = sanitize_decimal(data.get("amount", 0))
 
     if not amount_to_deduct or amount_to_deduct <= 0:
-        return jsonify({"message": "Invalid amount. Must be greater than zero."}), 400
+        return jsonify({"message": "Invalid amount. Must be greater than zero."}), 403
 
     connection = get_db_connection()
     cursor = connection.cursor()
 
-    try:
-        cursor.execute("SELECT id, wallet FROM Wallets WHERE user_id = %s;", (user_id,))
-        wallet_data = cursor.fetchone()
+    cursor.execute("SELECT id, wallet FROM Wallets WHERE user_id = %s;", (user_id,))
+    wallet_data = cursor.fetchone()
 
-        if not wallet_data:
-            return jsonify({"message": "Insufficient funds in wallet."}), 400
+    if not wallet_data:
+        return jsonify({"message": "Insufficient funds in wallet."}), 403
 
-        wallet_id, current_balance = wallet_data
+    wallet_id, current_balance = wallet_data
 
-        if current_balance < amount_to_deduct:
-            return (
-                jsonify(
-                    {
-                        "message": "Insufficient funds in wallet.",
-                        "available_funds": str(current_balance),
-                    }
-                ),
-                400,
-            )
-
-        new_balance = current_balance - amount_to_deduct
-        cursor.execute(
-            "UPDATE Wallets SET wallet = %s WHERE id = %s;", (new_balance, wallet_id)
-        )
-
-        description = f"Deducted {amount_to_deduct} from wallet."
-        cursor.execute(
-            """
-            INSERT INTO Transaction_History (wallet_id, user_id, old_wallet, new_wallet, description, date)
-            VALUES (%s, %s, %s, %s, %s, NOW());
-            """,
-            (wallet_id, user_id, current_balance, new_balance, description),
-        )
-
-        connection.commit()
-
-    except Exception as e:
-        connection.rollback()
+    if current_balance < amount_to_deduct:
         return (
             jsonify(
                 {
-                    "message": "An error occurred while processing the transaction.",
-                    "error": str(e),
+                    "message": "Insufficient funds in wallet.",
+                    "available_funds": str(current_balance),
                 }
             ),
-            500,
+            403,
         )
 
-    finally:
-        cursor.close()
-        connection.close()
+    new_balance = current_balance - amount_to_deduct
+    cursor.execute(
+        "UPDATE Wallets SET wallet = %s WHERE id = %s;", (new_balance, wallet_id)
+    )
+
+    description = f"Deducted {amount_to_deduct} from wallet."
+    cursor.execute(
+        """
+        INSERT INTO Transaction_History (wallet_id, user_id, old_wallet, new_wallet, description, date)
+        VALUES (%s, %s, %s, %s, %s, NOW());
+        """,
+        (wallet_id, user_id, current_balance, new_balance, description),
+    )
+
+    connection.commit()
+
+    cursor.close()
+    connection.close()
 
     return (
         jsonify(

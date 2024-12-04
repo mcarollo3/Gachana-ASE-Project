@@ -241,6 +241,12 @@ def roll_gacha():
         cert=(CERT_FILE, KEY_FILE),
     )
 
+    if hasEnoughWallet.status_code != 200:
+        return (
+            jsonify(hasEnoughWallet.json()),
+            hasEnoughWallet.status_code,
+        )
+
     if hasEnoughWallet.status_code == 200:
         user_data = decode_token(token)
         if not user_data:
