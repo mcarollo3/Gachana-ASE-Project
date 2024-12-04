@@ -4,6 +4,28 @@ import os
 from decode_auth_token import decode_token, token_required
 from decimal import Decimal
 from get_secrets import get_secret_value
+import re
+from werkzeug.exceptions import BadRequest
+
+
+# Sanificazione generale dei dati
+def sanitize_input(value):
+    if isinstance(value, str):
+        value = re.sub(r"[<>;'\"\\]", "", value).strip()
+    elif isinstance(value, list):
+        value = [sanitize_input(v) for v in value]
+    elif isinstance(value, dict):
+        value = {k: sanitize_input(v) for k, v in value.items()}
+    return value
+
+
+# Sanificazione di numeri o valori decimali
+def sanitize_decimal(value):
+    try:
+        return Decimal(value)
+    except:
+        raise BadRequest("Invalid decimal format.")
+
 
 app = Flask(__name__)
 SECRET_KEY = get_secret_value(os.environ.get("SECRET_KEY"))
@@ -46,8 +68,9 @@ def check_and_deduct_wallet():
     if not user_id:
         return jsonify({"message": "Could not access user id."}), 401
 
-    data = request.get_json()
-    amount_to_deduct = Decimal(data.get("amount", 0))
+    # Sanifichiamo i dati di input
+    data = sanitize_input(request.get_json())
+    amount_to_deduct = sanitize_decimal(data.get("amount", 0))
 
     if not amount_to_deduct or amount_to_deduct <= 0:
         return jsonify({"message": "Invalid amount. Must be greater than zero."}), 400
@@ -118,7 +141,6 @@ def check_and_deduct_wallet():
 @app.route("/buy_currency", methods=["PATCH"])
 @token_required(role_required="Player")
 def add_funds():
-
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
     user_data = decode_token(token)
     if not user_data:
@@ -127,12 +149,12 @@ def add_funds():
     if not user_id:
         return jsonify({"message": "Could not access user id."}), 401
 
-    data = request.get_json()
-
-    amount = Decimal(data.get("amount"))
-    card_number = data.get("card_number")
-    expiry_date = data.get("expiry_date")
-    cvv = data.get("cvv")
+    # Sanifichiamo i dati di input
+    data = sanitize_input(request.get_json())
+    amount = sanitize_decimal(data.get("amount"))
+    card_number = sanitize_input(data.get("card_number"))
+    expiry_date = sanitize_input(data.get("expiry_date"))
+    cvv = sanitize_input(data.get("cvv"))
 
     if not amount or amount <= 0:
         return jsonify({"message": "Invalid amount. Must be greater than zero."}), 400
@@ -415,8 +437,8 @@ def add_new_currency():
     if not data:
         return jsonify({"message": "Invalid or missing JSON payload."}), 400
 
-    user_id = data.get("user_id")
-    amount = Decimal(data.get("amount"))
+    user_id = sanitize_input(data.get("user_id"))
+    amount = sanitize_decimal(data.get("amount"))
 
     if not amount or amount <= 0:
         return jsonify({"message": "Invalid amount. Must be greater than zero."}), 400

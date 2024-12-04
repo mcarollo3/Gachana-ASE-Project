@@ -6,6 +6,7 @@ from get_secrets import get_secret_value
 from make_requests import make_request
 import random
 from io import BytesIO
+import bleach
 
 
 CERT_FILE = "/run/secrets/https_gacha_cert"
@@ -34,6 +35,18 @@ def get_db_connection():
         ssl_cert=ssl_cert,
         ssl_key=ssl_key,
     )
+
+
+def sanitize_input(input_value):
+    if isinstance(input_value, str):
+        return bleach.clean(input_value.strip())
+    elif isinstance(input_value, int):
+        return int(input_value)
+    elif isinstance(input_value, list):
+        return [sanitize_input(item) for item in input_value]
+    elif isinstance(input_value, dict):
+        return {key: sanitize_input(value) for key, value in input_value.items()}
+    return input_value
 
 
 def insert_image(cursor, image_path, image_name):
@@ -124,6 +137,7 @@ def get_user_collection():
 @app.route("/collection/<int:gacha_id>", methods=["GET"])
 @token_required(role_required="Player")
 def get_user_gacha(gacha_id):
+    gacha_id = sanitize_input(gacha_id)
 
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
     user_data = decode_token(token)
@@ -184,6 +198,7 @@ def get_available_gachas():
 @app.route("/collection/available/<int:gacha_id>", methods=["GET"])
 @token_required(role_required="Player")
 def get_available_gacha(gacha_id):
+    gacha_id = sanitize_input(gacha_id)
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
     user_data = decode_token(token)
     if not user_data:
@@ -317,7 +332,7 @@ def get_gachas():
 @app.route("/<int:gacha_id>", methods=["GET"])
 @token_required(role_required="Admin")
 def get_gacha(gacha_id):
-
+    gacha_id = sanitize_input(gacha_id)
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     query = """
@@ -336,8 +351,8 @@ def get_gacha(gacha_id):
 @app.route("/update/<int:gacha_id>", methods=["PATCH"])
 @token_required(role_required="Admin")
 def patch_gacha(gacha_id):
-
-    data = request.get_json()
+    gacha_id = sanitize_input(gacha_id)
+    data = sanitize_input(request.get_json())
 
     if (
         not data.get("name")
@@ -386,7 +401,7 @@ def patch_gacha(gacha_id):
 @app.route("/add", methods=["POST"])
 @token_required(role_required="Admin")
 def add_gacha():
-    data = request.get_json()
+    data = sanitize_input(request.get_json())
     if not data:
         return jsonify({"message": "Invalid request. JSON data is required."}), 400
 
@@ -436,7 +451,7 @@ def add_gacha():
 def delete_gacha(gacha_id):
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
-
+    gacha_id = sanitize_input(gacha_id)
     try:
         query_users = """
         SELECT DISTINCT user_id
@@ -503,7 +518,7 @@ def delete_gacha(gacha_id):
 @token_required(role_required="Admin")
 def add_gacha_to_user():
 
-    data = request.get_json()
+    data = sanitize_input(request.get_json())
     if not data:
         return jsonify({"message": "Invalid request. JSON data is required."}), 400
 
@@ -562,7 +577,7 @@ def add_gacha_to_user():
 @app.route("/remove", methods=["POST"])
 @token_required(role_required="Admin")
 def remove_gacha():
-    data = request.get_json()
+    data = sanitize_input(request.get_json())
     if not data or "user_id" not in data or "gacha_id" not in data:
         return jsonify({"message": "user_id and gacha_id are required."}), 400
 

@@ -7,6 +7,7 @@ import base64
 from decode_auth_token import decode_token, token_required
 from cryptography.fernet import Fernet
 from get_secrets import get_secret_value
+import re
 
 app = Flask(__name__)
 
@@ -88,6 +89,27 @@ def generate_auth_token(user_id, role):
     )
 
 
+def sanitize_username(input_str):
+    """Permette solo caratteri alfanumerici, underscore e trattini."""
+    return re.sub(r"[^a-zA-Z0-9_-]", "", input_str)
+
+
+def is_valid_password(password):
+    """Verifica se la password soddisfa i criteri di sicurezza."""
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long."
+    if not re.search(r"[A-Z]", password):
+        return False, "Password must contain at least one uppercase letter."
+    if not re.search(r"[a-z]", password):
+        return False, "Password must contain at least one lowercase letter."
+    if not re.search(r"[0-9]", password):
+        return False, "Password must contain at least one number."
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        return False, "Password must contain at least one special character."
+    return True, ""
+
+
+# Endpoint di registrazione con validazione
 @app.route("/signup", methods=["POST"])
 def registration():
     data = request.get_json()
@@ -95,9 +117,12 @@ def registration():
     if not data.get("username") or not data.get("psw"):
         return jsonify({"message": "Incomplete data"}), 400
 
-    username = data["username"]
+    username = sanitize_username(data["username"])
     psw = data["psw"]
-    role = "Player"
+
+    is_valid, error_message = is_valid_password(psw)
+    if not is_valid:
+        return jsonify({"message": error_message}), 400
 
     encrypted_psw = cipher_suite.encrypt(psw.encode())
 
@@ -114,17 +139,17 @@ def registration():
 
     cursor.execute(
         "INSERT INTO UserData (username, psw, role) VALUES (%s, %s, %s);",
-        (username, encrypted_psw, role),
+        (username, encrypted_psw, "Player"),
     )
 
     connection.commit()
     cursor.close()
     connection.close()
 
-    return jsonify({"message": "User added!"}), 201
+    return jsonify({"message": f"User {username} added!"}), 201
 
 
-# Autenticazione per ottenere il token
+# Endpoint di login con sanificazione input
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
@@ -132,7 +157,8 @@ def login():
     if not data.get("username") or not data.get("psw"):
         return jsonify({"message": "Incomplete data"}), 400
 
-    username, password = data.get("username"), data.get("psw")
+    username = sanitize_username(data["username"])
+    password = data["psw"]
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
@@ -140,7 +166,7 @@ def login():
     user = cursor.fetchone()
     cursor.close()
     connection.close()
-    print(f"psw: ", user["psw"])
+
     if user:
         decrypted_psw = cipher_suite.decrypt(user["psw"]).decode()
 
@@ -234,18 +260,18 @@ def get_user(user_id):
 def update_user(user_id):
     data = request.get_json()
 
-    if (
-        not data.get("username")
-        and not data.get("psw")
-        and not data.get("role")
-        and not data.get("id_image")
-    ):
+    if not data.get("username") and not data.get("psw") and not data.get("role"):
         return jsonify({"message": "No data provided for update"}), 400
 
-    username = data.get("username")
+    username = sanitize_username(data.get("username")) if data.get("username") else None
     psw = data.get("psw")
     role = data.get("role")
-    id_image = data.get("id_image")
+
+    # Validate password if provided
+    if psw:
+        is_valid, error_message = is_valid_password(psw)
+        if not is_valid:
+            return jsonify({"message": error_message}), 400
 
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -262,9 +288,6 @@ def update_user(user_id):
     if role:
         query += "role = %s, "
         params.append(role)
-    if id_image:
-        query += "id_image = %s, "
-        params.append(id_image)
 
     query = query.rstrip(", ")
 
@@ -336,12 +359,17 @@ def update_account():
 
     data = request.get_json()
 
-    if not data.get("username") and not data.get("psw") and not data.get("id_image"):
+    if not data.get("username") and not data.get("psw"):
         return jsonify({"message": "No data provided for update"}), 400
 
-    username = data.get("username")
+    username = sanitize_username(data.get("username")) if data.get("username") else None
     psw = data.get("psw")
-    id_image = data.get("id_image")
+
+    # Validate password if provided
+    if psw:
+        is_valid, error_message = is_valid_password(psw)
+        if not is_valid:
+            return jsonify({"message": error_message}), 400
 
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -355,9 +383,6 @@ def update_account():
     if psw:
         query += "psw = %s, "
         params.append(psw)
-    if id_image:
-        query += "id_image = %s, "
-        params.append(id_image)
 
     query = query.rstrip(", ")
 

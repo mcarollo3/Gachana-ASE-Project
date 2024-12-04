@@ -37,6 +37,28 @@ def get_db_connection():
     )
 
 
+def sanitize_input(data, data_type):
+
+    if data_type == "string":
+        return str(data).strip() if data else None
+    elif data_type == "int":
+        try:
+            return int(data)
+        except ValueError:
+            return None
+    elif data_type == "float":
+        try:
+            return float(data)
+        except ValueError:
+            return None
+    elif data_type == "date":
+        try:
+            return datetime.strptime(data, "%Y-%m-%d") if data else None
+        except ValueError:
+            return None
+    return data
+
+
 @app.route("/list", methods=["GET"])
 @token_required(role_required=["Admin", "Player"])
 def get_market_items():
@@ -124,17 +146,17 @@ def post_market_item():
         return jsonify({"message": "Could not access user id."}), 401
 
     data = request.get_json()
-    gacha_id = data.get("gacha_id")
+    gacha_id = sanitize_input(data.get("gacha_id"), "int")
     start_date = datetime.now()
-    end_date = data.get("end_date")
-    init_value = data.get("init_value")
+    end_date = sanitize_input(data.get("end_date"), "date")
+    init_value = sanitize_input(data.get("init_value"), "float")
 
     if not end_date:
         return jsonify({"message": "End date is required."}), 400
 
     try:
-        end_date_parsed = datetime.strptime(end_date, "%Y-%m-%d")
-        if (end_date_parsed - start_date).days <= 1:
+
+        if (end_date - start_date).days <= 1:
             return (
                 jsonify({"message": "End date must be at least one day after today."}),
                 400,
@@ -165,9 +187,7 @@ def post_market_item():
     INSERT INTO Market (gacha_id, user_id, init_value, value_last_offer, start_date, end_date)
     VALUES (%s, %s, %s, %s, %s, %s);
     """
-    cursor.execute(
-        query, (gacha_id, user_id, init_value, 0, start_date, end_date_parsed)
-    )
+    cursor.execute(query, (gacha_id, user_id, init_value, 0, start_date, end_date))
     connection.commit()
     cursor.close()
     connection.close()
@@ -189,8 +209,8 @@ def make_offer():
         return jsonify({"message": "Could not access user id."}), 401
 
     data = request.get_json()
-    market_id = data.get("market_id")
-    offer_value = data.get("offer_value")
+    market_id = sanitize_input(data.get("market_id"), "int")
+    offer_value = sanitize_input(data.get("offer_value"), "float")
 
     if not market_id or not offer_value:
         return jsonify({"message": "Market ID and offer value are required."}), 400
@@ -347,8 +367,8 @@ def accept_offer():
         return jsonify({"message": "Could not access user id."}), 401
 
     data = request.get_json()
-    market_id = data.get("market_id")
-    buyer_id = data.get("buyer_id")
+    market_id = sanitize_input(data.get("market_id"), "int")
+    buyer_id = sanitize_input(data.get("buyer_id"), "int")
 
     if not market_id or not buyer_id:
         return jsonify({"message": "Market ID and buyer ID are required."}), 400
@@ -620,10 +640,10 @@ def get_auction_details(market_id):
 def update_auction(market_id):
     data = request.get_json()
 
-    init_value = data.get("init_value")
-    value_last_offer = data.get("value_last_offer")
-    start_date = data.get("start_date")
-    end_date = data.get("end_date")
+    init_value = sanitize_input(data.get("init_value"), "float")
+    value_last_offer = sanitize_input(data.get("value_last_offer"), "float")
+    start_date = sanitize_input(data.get("start_date"), "date")
+    end_date = sanitize_input(data.get("end_date"), "date")
 
     if not (init_value and start_date):
         return jsonify({"message": "Initial value and start date are required."}), 400

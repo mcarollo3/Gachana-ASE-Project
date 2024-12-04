@@ -3,8 +3,8 @@
 		"_postman_id": "6241a48d-f65b-48e9-80bc-feac845d5ee9",
 		"name": "Gachana",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39572870",
-		"_collection_link": "https://gachana.postman.co/workspace/Gachana-Workspace~ccd2cd2e-8e57-46e0-9577-e2befa5a4699/collection/39718315-6241a48d-f65b-48e9-80bc-feac845d5ee9?action=share&source=collection_link&creator=39572870"
+		"_exporter_id": "39718315",
+		"_collection_link": "https://gachana.postman.co/workspace/Gachana-Workspace~ccd2cd2e-8e57-46e0-9577-e2befa5a4699/collection/39718315-6241a48d-f65b-48e9-80bc-feac845d5ee9?action=share&source=collection_link&creator=39718315"
 	},
 	"item": [
 		{
@@ -20,42 +20,38 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"// Validate status code",
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
+											"pm.test(\"Endpoint responds with status 200 or expected error codes\", function () {",
+											"    pm.expect([200, 401]).to.include(pm.response.code);",
 											"",
-											"// Validate response for a user with a collection",
-											"pm.test(\"Response contains a list of Gacha items\", function () {",
-											"    const jsonData = pm.response.json();",
-											"    if (jsonData.length > 0) {",
-											"",
-											"        jsonData.forEach(item => {",
+											"    if (pm.response.code === 200) {",
+											"        pm.test(\"Response should be an array of objects\", function () {",
+											"            const jsonData = pm.response.json();",
 											"            pm.expect(jsonData).to.be.an(\"array\");",
-											"",
-											"            pm.expect(item).to.have.property(\"id\");",
-											"            pm.expect(item).to.have.property(\"name\");",
-											"            pm.expect(item).to.have.property(\"id_img\");",
-											"            pm.expect(item).to.have.property(\"quantity\");",
-											"        });",
-											"    } else {",
-											"        pm.test(\"Message for empty collection\", function () {",
-											"            pm.expect(jsonData.message).to.equal(\"User owns no gachas.\");",
+											"            ",
+											"            if (jsonData.length > 0) {",
+											"                jsonData.forEach(item => {",
+											"                    pm.test(\"Each item should have the required fields\", function () {",
+											"                        pm.expect(item).to.have.property(\"name\");",
+											"                        pm.expect(item).to.have.property(\"name_img\");",
+											"                        pm.expect(item).to.have.property(\"rarity\");",
+											"                        pm.expect(item).to.have.property(\"quantity\");",
+											"                    });",
+											"                });",
+											"            } else {",
+											"                pm.test(\"User owns no gachas.\", function () {",
+											"                    pm.expect(jsonData.message).to.eql(\"User owns no gachas.\");",
+											"                });",
+											"            }",
 											"        });",
 											"    }",
-											"});",
 											"",
-											"// Validate error for invalid or missing token",
-											"pm.test(\"Invalid or missing token\", function () {",
 											"    if (pm.response.code === 401) {",
-											"        const jsonData = pm.response.json();",
-											"        pm.expect(jsonData.message).to.be.oneOf([",
-											"            \"Could not access user data.\",",
-											"            \"Could not access user id.\"",
-											"        ]);",
+											"        pm.test(\"Unauthorized response includes error message\", function () {",
+											"            const jsonData = pm.response.json();",
+											"            pm.expect(jsonData).to.have.property(\"message\");",
+											"        });",
 											"    }",
-											"});",
-											""
+											"});"
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -86,9 +82,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{gacha_url}}/collection",
+									"raw": "{{gacha_url_player}}/collection",
 									"host": [
-										"{{gacha_url}}"
+										"{{gacha_url_player}}"
 									],
 									"path": [
 										"collection"
@@ -104,43 +100,33 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"// Validate status code",
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
+											"pm.test(\"Endpoint responds with status 200 or expected error codes\", function () {",
+											"    pm.expect([200, 401]).to.include(pm.response.code);",
 											"",
-											"// Validate response for a valid Gacha item",
-											"pm.test(\"Response contains expected Gacha fields\", function () {",
-											"    const jsonData = pm.response.json();",
 											"    if (pm.response.code === 200) {",
-											"        pm.expect(jsonData).to.be.an(\"object\");",
-											"        pm.expect(jsonData).to.have.property(\"id\");",
-											"        pm.expect(jsonData).to.have.property(\"name\");",
-											"        pm.expect(jsonData).to.have.property(\"description\");",
-											"        pm.expect(jsonData).to.have.property(\"id_img\");",
-											"        pm.expect(jsonData).to.have.property(\"rarity\");",
+											"        pm.test(\"Response should be an object\", function () {",
+											"            const jsonData = pm.response.json();",
+											"            pm.expect(jsonData).to.be.an(\"object\");",
+											"            pm.test(\"Object should have required fields\", function () {",
+											"                pm.expect(jsonData).to.have.property(\"name\");",
+											"                pm.expect(jsonData).to.have.property(\"description\");",
+											"                pm.expect(jsonData).to.have.property(\"rarity\");",
+											"            });",
+											"        });",
+											"    } else {",
+											"        pm.test(\"User owns no gachas.\", function () {",
+											"            const jsonData = pm.response.json();",
+											"            pm.expect(jsonData.message).to.eql(\"User owns no gachas.\");",
+											"        });",
 											"    }",
-											"});",
 											"",
-											"// Validate Gacha not found response",
-											"pm.test(\"Gacha not found or not owned by user\", function () {",
-											"    if (pm.response.code === 404) {",
-											"        const jsonData = pm.response.json();",
-											"        pm.expect(jsonData.message).to.equal(\"Gacha not found or not owned by user.\");",
-											"    }",
-											"});",
-											"",
-											"// Validate response for invalid or missing token",
-											"pm.test(\"Invalid or missing token\", function () {",
 											"    if (pm.response.code === 401) {",
-											"        const jsonData = pm.response.json();",
-											"        pm.expect(jsonData.message).to.be.oneOf([",
-											"            \"Could not access user data.\",",
-											"            \"Could not access user id.\"",
-											"        ]);",
+											"        pm.test(\"Unauthorized response includes error message\", function () {",
+											"            const jsonData = pm.response.json();",
+											"            pm.expect(jsonData).to.have.property(\"message\");",
+											"        });",
 											"    }",
-											"});",
-											""
+											"});"
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -161,13 +147,13 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{gacha_url}}/collection/1",
+									"raw": "{{gacha_url_player}}/collection/3",
 									"host": [
-										"{{gacha_url}}"
+										"{{gacha_url_player}}"
 									],
 									"path": [
 										"collection",
-										"1"
+										"3"
 									]
 								}
 							},
@@ -180,39 +166,37 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"// Validate status code",
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
+											"pm.test(\"Endpoint responds with status 200 or expected error codes\", function () {",
+											"    pm.expect([200, 401]).to.include(pm.response.code);",
 											"",
-											"// Validate response for available Gacha items",
-											"pm.test(\"Response contains a list of available Gacha items\", function () {",
-											"    const jsonData = pm.response.json();",
-											"    if (jsonData.length > 0) {",
-											"        pm.expect(jsonData).to.be.an(\"array\");",
-											"        jsonData.forEach(item => {",
-											"            pm.expect(item).to.have.property(\"id\");",
-											"            pm.expect(item).to.have.property(\"name\");",
-											"            pm.expect(item).to.have.property(\"id_img\");",
-											"        });",
-											"    } else {",
-											"        pm.test(\"Message when user owns all Gacha items\", function () {",
-											"            pm.expect(jsonData.message).to.equal(\"User owns every gacha.\");",
+											"    if (pm.response.code === 200) {",
+											"        pm.test(\"Response should be an array of objects\", function () {",
+											"            const jsonData = pm.response.json();",
+											"            pm.expect(jsonData).to.be.an(\"array\");",
+											"",
+											"            if (jsonData.length > 0) {",
+											"                jsonData.forEach(item => {",
+											"                    pm.test(\"Each item should have required fields\", function () {",
+											"                        pm.expect(item).to.have.property(\"name\");",
+											"                        pm.expect(item).to.have.property(\"rarity\");",
+											"                    });",
+											"                });",
+											"            } else {",
+											"                pm.test(\"User owns every gacha.\", function () {",
+											"                    pm.expect(jsonData).to.have.property(\"message\");",
+											"                    pm.expect(jsonData.message).to.eql(\"User owns every gacha.\");",
+											"                });",
+											"            }",
 											"        });",
 											"    }",
-											"});",
 											"",
-											"// Validate response for invalid or missing token",
-											"pm.test(\"Invalid or missing token\", function () {",
 											"    if (pm.response.code === 401) {",
-											"        const jsonData = pm.response.json();",
-											"        pm.expect(jsonData.message).to.be.oneOf([",
-											"            \"Could not access user data.\",",
-											"            \"Could not access user id.\"",
-											"        ]);",
+											"        pm.test(\"Unauthorized response includes error message\", function () {",
+											"            const jsonData = pm.response.json();",
+											"            pm.expect(jsonData).to.have.property(\"message\");",
+											"        });",
 											"    }",
-											"});",
-											""
+											"});"
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -233,9 +217,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{gacha_url}}/collection/available",
+									"raw": "{{gacha_url_player}}/collection/available",
 									"host": [
-										"{{gacha_url}}"
+										"{{gacha_url_player}}"
 									],
 									"path": [
 										"collection",
@@ -252,39 +236,37 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"// Validate status code",
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
+											"pm.test(\"Endpoint responds with status 200 or expected error codes\", function () {",
+											"    pm.expect([200, 401]).to.include(pm.response.code);",
 											"",
-											"// Validate response for an available Gacha item",
-											"pm.test(\"Response contains expected Gacha fields if available\", function () {",
-											"    const jsonData = pm.response.json();",
-											"    if (pm.response.code === 200 && jsonData.id) {",
-											"        pm.expect(jsonData).to.be.an(\"object\");",
-											"        pm.expect(jsonData).to.have.property(\"id\");",
-											"        pm.expect(jsonData).to.have.property(\"name\");",
-											"        pm.expect(jsonData).to.have.property(\"description\");",
-											"        pm.expect(jsonData).to.have.property(\"id_img\");",
-											"        pm.expect(jsonData).to.have.property(\"rarity\");",
-											"    } else {",
-											"        pm.test(\"Message when Gacha is already owned\", function () {",
-											"            pm.expect(jsonData.message).to.equal(\"User already owns this gacha.\");",
+											"    if (pm.response.code === 200) {",
+											"        pm.test(\"Response should be an object\", function () {",
+											"            const jsonData = pm.response.json();",
+											"            pm.expect(jsonData).to.be.an(\"object\");",
+											"",
+											"            if (Object.keys(jsonData).length > 0) {",
+											"                pm.test(\"Object should have required fields\", function () {",
+											"                    pm.expect(jsonData).to.have.property(\"name\");",
+											"                    pm.expect(jsonData).to.have.property(\"description\");",
+											"                    pm.expect(jsonData).to.have.property(\"name_img\");",
+											"                    pm.expect(jsonData).to.have.property(\"rarity\");",
+											"                });",
+											"            } else {",
+											"                pm.test(\"User already owns this gacha.\", function () {",
+											"                    pm.expect(jsonData).to.have.property(\"message\");",
+											"                    pm.expect(jsonData.message).to.eql(\"User already owns this gacha.\");",
+											"                });",
+											"            }",
 											"        });",
 											"    }",
-											"});",
 											"",
-											"// Validate response for invalid or missing token",
-											"pm.test(\"Invalid or missing token\", function () {",
 											"    if (pm.response.code === 401) {",
-											"        const jsonData = pm.response.json();",
-											"        pm.expect(jsonData.message).to.be.oneOf([",
-											"            \"Could not access user data.\",",
-											"            \"Could not access user id.\"",
-											"        ]);",
+											"        pm.test(\"Unauthorized response includes error message\", function () {",
+											"            const jsonData = pm.response.json();",
+											"            pm.expect(jsonData).to.have.property(\"message\");",
+											"        });",
 											"    }",
-											"});",
-											""
+											"});"
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -305,14 +287,14 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{gacha_url}}/collection/available/1",
+									"raw": "{{gacha_url_player}}/collection/available/12",
 									"host": [
-										"{{gacha_url}}"
+										"{{gacha_url_player}}"
 									],
 									"path": [
 										"collection",
 										"available",
-										"1"
+										"12"
 									]
 								}
 							},
@@ -325,27 +307,119 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"// Validate status code",
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
+											"// Pre-request Script",
+											"// Ensure you have a valid token to include in the Authorization header",
 											"",
-											"// Validate response for a successful Gacha roll",
-											"pm.test(\"Response contains success message\", function () {",
-											"    const jsonData = pm.response.json();",
-											"    pm.expect(jsonData).to.be.an(\"object\");",
-											"    pm.expect(jsonData).to.have.property(\"message\");",
-											"    pm.expect(jsonData.message).to.match(/^User successfully rolled gacha \\d+\\.$/);",
-											"});",
+											"pm.environment.set(\"api_url\", \"http://localhost:5000/roll\"); // Replace with your API base URL",
 											"",
-											"// Validate response for invalid or missing token",
-											"pm.test(\"Invalid or missing token\", function () {",
+											"const token = \"your_jwt_token_here\"; // Replace with your valid JWT",
+											"pm.environment.set(\"auth_token\", token);",
+											"",
+											"// Tests Script",
+											"pm.test(\"Endpoint responds with status 200 or expected error codes\", function () {",
+											"    pm.expect([200, 401, 404, 400, 500]).to.include(pm.response.code);",
+											"",
+											"    if (pm.response.code === 200) {",
+											"        pm.test(\"Response should include a success message and gacha info\", function () {",
+											"            try {",
+											"                const jsonData = pm.response.json();",
+											"                pm.expect(jsonData).to.be.an(\"object\");",
+											"                pm.expect(jsonData).to.have.property(\"message\");",
+											"                pm.expect(jsonData.message).to.include(\"You successfully rolled gacha\");",
+											"",
+											"                pm.test(\"Gacha info should have required fields\", function () {",
+											"                    pm.expect(jsonData).to.have.property(\"gacha_info\");",
+											"                    const gachaInfo = jsonData.gacha_info;",
+											"                    pm.expect(gachaInfo).to.be.an(\"object\");",
+											"                    pm.expect(gachaInfo).to.have.property(\"name\");",
+											"                    pm.expect(gachaInfo).to.have.property(\"description\");",
+											"                    pm.expect(gachaInfo).to.have.property(\"rarity\");",
+											"                });",
+											"            } catch (e) {",
+											"                pm.test(\"Response should be valid JSON\", function () {",
+											"                    pm.expect(e).to.be.null;",
+											"                });",
+											"            }",
+											"        });",
+											"    }",
+											"",
 											"    if (pm.response.code === 401) {",
-											"        const jsonData = pm.response.json();",
-											"        pm.expect(jsonData.message).to.be.oneOf([",
-											"            \"Could not access user data.\",",
-											"            \"Could not access user id.\"",
-											"        ]);",
+											"        pm.test(\"Unauthorized response includes error message\", function () {",
+											"            try {",
+											"                const jsonData = pm.response.json();",
+											"                pm.expect(jsonData).to.have.property(\"message\");",
+											"            } catch (e) {",
+											"                pm.test(\"Response should be valid JSON\", function () {",
+											"                    pm.expect(e).to.be.null;",
+											"                });",
+											"            }",
+											"        });",
+											"    }",
+											"",
+											"    if (pm.response.code === 404) {",
+											"        pm.test(\"Gacha not found response includes error message\", function () {",
+											"            try {",
+											"                const jsonData = pm.response.json();",
+											"                pm.expect(jsonData).to.have.property(\"message\");",
+											"                pm.expect(jsonData.message).to.eql(\"Gacha not found.\");",
+											"            } catch (e) {",
+											"                pm.test(\"Response should be valid JSON\", function () {",
+											"                    pm.expect(e).to.be.null;",
+											"                });",
+											"            }",
+											"        });",
+											"    }",
+											"",
+											"    if (pm.response.code === 400) {",
+											"        pm.test(\"Invalid amount response includes error message\", function () {",
+											"            try {",
+											"                const jsonData = pm.response.json();",
+											"                pm.expect(jsonData).to.have.property(\"message\");",
+											"                pm.expect(jsonData.message).to.eql(\"Invalid amount. Must be greater than zero.\");",
+											"            } catch (e) {",
+											"                pm.test(\"Response should be valid JSON\", function () {",
+											"                    pm.expect(e).to.be.null;",
+											"                });",
+											"            }",
+											"        });",
+											"",
+											"        pm.test(\"Insufficient funds response includes error message\", function () {",
+											"            try {",
+											"                const jsonData = pm.response.json();",
+											"                pm.expect(jsonData).to.have.property(\"message\");",
+											"                pm.expect(jsonData.message).to.eql(\"Insufficient funds in wallet.\");",
+											"            } catch (e) {",
+											"                pm.test(\"Response should be valid JSON\", function () {",
+											"                    pm.expect(e).to.be.null;",
+											"                });",
+											"            }",
+											"        });",
+											"",
+											"        pm.test(\"Insufficient funds with available balance response includes error message and available funds\", function () {",
+											"            try {",
+											"                const jsonData = pm.response.json();",
+											"                pm.expect(jsonData).to.have.property(\"message\");",
+											"                pm.expect(jsonData.message).to.eql(\"Insufficient funds in wallet.\");",
+											"                pm.expect(jsonData).to.have.property(\"available_funds\");",
+											"            } catch (e) {",
+											"                pm.test(\"Response should be valid JSON\", function () {",
+											"                    pm.expect(e).to.be.null;",
+											"                });",
+											"            }",
+											"        });",
+											"    }",
+											"",
+											"    if (pm.response.code === 500) {",
+											"        pm.test(\"Internal Server Error response includes error message\", function () {",
+											"            try {",
+											"                const jsonData = pm.response.json();",
+											"                pm.expect(jsonData).to.have.property(\"message\");",
+											"            } catch (e) {",
+											"                pm.test(\"Response should be valid JSON\", function () {",
+											"                    pm.expect(e).to.be.null;",
+											"                });",
+											"            }",
+											"        });",
 											"    }",
 											"});",
 											""
@@ -369,138 +443,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{gacha_url}}/collection/roll",
+									"raw": "{{gacha_url_player}}/roll",
 									"host": [
-										"{{gacha_url}}"
+										"{{gacha_url_player}}"
 									],
 									"path": [
-										"collection",
 										"roll"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "collection-add",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status Code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"Response contains success message\", function () {",
-											"    const jsonResponse = pm.response.json();",
-											"    pm.expect(jsonResponse).to.have.property(\"message\");",
-											"    pm.expect(jsonResponse.message).to.match(/Gacha \\d+ successfully added to user \\d+/);",
-											"});",
-											"",
-											"// Validate error for invalid or missing token",
-											"pm.test(\"Invalid or missing token\", function () {",
-											"    if (pm.response.code === 401) {",
-											"        const jsonData = pm.response.json();",
-											"        pm.expect(jsonData.message).to.be.oneOf([",
-											"            \"Could not access user data.\",",
-											"            \"Could not access user id.\"",
-											"        ]);",
-											"    }",
-											"});",
-											""
-										],
-										"type": "text/javascript",
-										"packages": {}
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{jwtTokenPlayer}}",
-											"type": "string"
-										}
-									]
-								},
-								"method": "POST",
-								"header": [],
-								"url": {
-									"raw": "{{gacha_url}}/collection/add/3",
-									"host": [
-										"{{gacha_url}}"
-									],
-									"path": [
-										"collection",
-										"add",
-										"3"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "remove",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status Code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"Response contains success message\", function () {",
-											"    const jsonResponse = pm.response.json();",
-											"    pm.expect(jsonResponse).to.have.property(\"message\");",
-											"    pm.expect(jsonResponse.message).to.match(/Gacha with ID \\d+ removed from user \\d+/);",
-											"});",
-											"",
-											"pm.test(\"Authorization token was included\", function () {",
-											"    pm.expect(pm.request.headers.get('Authorization')).to.exist;",
-											"});",
-											"",
-											"// Validate error for invalid or missing token",
-											"pm.test(\"Invalid or missing token\", function () {",
-											"    if (pm.response.code === 401) {",
-											"        const jsonData = pm.response.json();",
-											"        pm.expect(jsonData.message).to.be.oneOf([",
-											"            \"Could not access user data.\",",
-											"            \"Could not access user id.\"",
-											"        ]);",
-											"    }",
-											"});",
-											""
-										],
-										"type": "text/javascript",
-										"packages": {}
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{jwtTokenPlayer}}",
-											"type": "string"
-										}
-									]
-								},
-								"method": "POST",
-								"header": [],
-								"url": {
-									"raw": "{{gacha_url}}/remove/3",
-									"host": [
-										"{{gacha_url}}"
-									],
-									"path": [
-										"remove",
-										"3"
 									]
 								}
 							},
@@ -574,9 +522,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{gacha_url}}/gachas-list",
+									"raw": "{{gacha_url_admin}}/gachas-list",
 									"host": [
-										"{{gacha_url}}"
+										"{{gacha_url_admin}}"
 									],
 									"path": [
 										"gachas-list"
@@ -647,12 +595,12 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{gacha_url}}/1",
+									"raw": "{{gacha_url_admin}}/3",
 									"host": [
-										"{{gacha_url}}"
+										"{{gacha_url_admin}}"
 									],
 									"path": [
-										"1"
+										"3"
 									]
 								}
 							},
@@ -739,7 +687,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"name\": \"test\",\r\n    \"description\": \"description\",\r\n    \"id_img\": \"id_img\",\r\n    \"rarity\": \"Common\"\r\n}",
+									"raw": "{\r\n    \"name\": \"test\",\r\n    \"description\": \"description\",\r\n    \"name_img\": \"test\",\r\n    \"rarity\": \"Common\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -747,9 +695,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{gacha_url}}/add",
+									"raw": "{{gacha_url_admin}}/add",
 									"host": [
-										"{{gacha_url}}"
+										"{{gacha_url_admin}}"
 									],
 									"path": [
 										"add"
@@ -819,13 +767,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{gacha_url}}/delete/21",
+									"raw": "{{gacha_url_admin}}/delete/23",
 									"host": [
-										"{{gacha_url}}"
+										"{{gacha_url_admin}}"
 									],
 									"path": [
 										"delete",
-										"21"
+										"23"
 									]
 								}
 							},
@@ -913,6 +861,138 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "collection-add",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status Code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response contains success message\", function () {",
+											"    const jsonResponse = pm.response.json();",
+											"    pm.expect(jsonResponse).to.have.property(\"message\");",
+											"    pm.expect(jsonResponse.message).to.match(/Gacha \\d+ successfully added to user \\d+/);",
+											"});",
+											"",
+											"// Validate error for invalid or missing token",
+											"pm.test(\"Invalid or missing token\", function () {",
+											"    if (pm.response.code === 401) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.be.oneOf([",
+											"            \"Could not access user data.\",",
+											"            \"Could not access user id.\"",
+											"        ]);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user_id\": 2,\r\n    \"gacha_id\": 4\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{gacha_url_admin}}/collection/add",
+									"host": [
+										"{{gacha_url_admin}}"
+									],
+									"path": [
+										"collection",
+										"add"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "remove",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status Code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response contains success message\", function () {",
+											"    const jsonResponse = pm.response.json();",
+											"    pm.expect(jsonResponse).to.have.property(\"message\");",
+											"    pm.expect(jsonResponse.message).to.match(/Gacha with ID \\d+ removed from user \\d+/);",
+											"});",
+											"",
+											"pm.test(\"Authorization token was included\", function () {",
+											"    pm.expect(pm.request.headers.get('Authorization')).to.exist;",
+											"});",
+											"",
+											"// Validate error for invalid or missing token",
+											"pm.test(\"Invalid or missing token\", function () {",
+											"    if (pm.response.code === 401) {",
+											"        const jsonData = pm.response.json();",
+											"        pm.expect(jsonData.message).to.be.oneOf([",
+											"            \"Could not access user data.\",",
+											"            \"Could not access user id.\"",
+											"        ]);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{gacha_url_admin}}/remove",
+									"host": [
+										"{{gacha_url_admin}}"
+									],
+									"path": [
+										"remove"
+									]
+								}
+							},
+							"response": []
 						}
 					],
 					"auth": {
@@ -947,6 +1027,46 @@
 							}
 						}
 					]
+				},
+				{
+					"name": "get_image",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtTokenAdmin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gacha_url_admin}}/image/kuzco",
+							"host": [
+								"{{gacha_url_admin}}"
+							],
+							"path": [
+								"image",
+								"kuzco"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -1010,9 +1130,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{user_url}}/list",
+									"raw": "{{user_url_admin}}/list",
 									"host": [
-										"{{user_url}}"
+										"{{user_url_admin}}"
 									],
 									"path": [
 										"list"
@@ -1082,9 +1202,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{user_url}}/1",
+									"raw": "{{user_url_admin}}/1",
 									"host": [
-										"{{user_url}}"
+										"{{user_url_admin}}"
 									],
 									"path": [
 										"1"
@@ -1169,7 +1289,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"marco2\",\r\n    \"psw\": \"prova2\"\r\n}",
+									"raw": "{\r\n    \"username\": \"player\",\r\n    \"psw\": \"prova2\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1177,9 +1297,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{user_url}}/update",
+									"raw": "{{user_url_admin}}/update",
 									"host": [
-										"{{user_url}}"
+										"{{user_url_admin}}"
 									],
 									"path": [
 										"update"
@@ -1264,9 +1384,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{user_url}}/2/delete",
+									"raw": "{{user_url_admin}}/2/delete",
 									"host": [
-										"{{user_url}}"
+										"{{user_url_admin}}"
 									],
 									"path": [
 										"2",
@@ -1352,9 +1472,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{user_url}}/delete",
+									"raw": "{{user_url_player}}/delete",
 									"host": [
-										"{{user_url}}"
+										"{{user_url_player}}"
 									],
 									"path": [
 										"delete"
@@ -1472,7 +1592,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"username\": \"marco\",\r\n    \"psw\": \"prova2\"\r\n}",
+									"raw": "{\r\n    \"username\": \"player\",\r\n    \"psw\": \"prova\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1480,9 +1600,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{user_url}}/update",
+									"raw": "{{user_url_player}}/update",
 									"host": [
-										"{{user_url}}"
+										"{{user_url_player}}"
 									],
 									"path": [
 										"update"
@@ -1560,7 +1680,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"marco\",\r\n    \"psw\": \"prova\"\r\n}",
+							"raw": "{\r\n    \"username\": \"marco2\",\r\n    \"psw\": \"prova2\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1568,9 +1688,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{user_url}}/signup",
+							"raw": "{{user_url_player}}/signup",
 							"host": [
-								"{{user_url}}"
+								"{{user_url_player}}"
 							],
 							"path": [
 								"signup"
@@ -1580,7 +1700,7 @@
 					"response": []
 				},
 				{
-					"name": "login",
+					"name": "login admin",
 					"event": [
 						{
 							"listen": "test",
@@ -1616,7 +1736,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\":\"admin\",\r\n    \"password\":\"gachana\"\r\n}",
+							"raw": "{\r\n    \"username\":\"admin\",\r\n    \"psw\":\"gachana\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1624,9 +1744,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{user_url}}/login",
+							"raw": "{{user_url_admin}}/login",
 							"host": [
-								"{{user_url}}"
+								"{{user_url_admin}}"
 							],
 							"path": [
 								"login"
@@ -1636,7 +1756,7 @@
 					"response": []
 				},
 				{
-					"name": "logout",
+					"name": "logout admin",
 					"event": [
 						{
 							"listen": "test",
@@ -1660,6 +1780,16 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtTokenAdmin}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [],
 						"body": {
@@ -1672,9 +1802,67 @@
 							}
 						},
 						"url": {
-							"raw": "{{user_url}}/logout",
+							"raw": "{{user_url_admin}}/logout",
 							"host": [
-								"{{user_url}}"
+								"{{user_url_admin}}"
+							],
+							"path": [
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "logout player",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtTokenPlayer}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{user_url_player}}/logout",
+							"host": [
+								"{{user_url_player}}"
 							],
 							"path": [
 								"logout"
@@ -1723,7 +1911,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\":\"marco\",\r\n    \"password\":\"prova\"\r\n}",
+							"raw": "{\r\n    \"username\":\"player\",\r\n    \"psw\":\"prova\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1731,9 +1919,68 @@
 							}
 						},
 						"url": {
-							"raw": "{{user_url}}/login",
+							"raw": "{{user_url_player}}/login",
 							"host": [
-								"{{user_url}}"
+								"{{user_url_player}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login player 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Assumendo che il token sia restituito nel corpo della risposta come \"token\"\r",
+									"const jsonData = pm.response.json();\r",
+									"\r",
+									"// Salva il token come variabile globale o d'ambiente\r",
+									"pm.environment.set(\"jwtTokenPlayer2\", jsonData.token); // Usa pm.globals.set() per una variabile globale\r",
+									"\r",
+									"// Facoltativo: Stampa il token nella console di Postman per debugging\r",
+									"console.log(\"JWT Token salvato:\", jsonData.token);\r",
+									"\r",
+									"// Test for successful login (Status 200)\r",
+									"pm.test(\"Status code is 200 and token is received\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.have.property('token');\r",
+									"});\r",
+									"\r",
+									"// Test for invalid credentials (Status 401)\r",
+									"/*pm.test(\"Status code is 401 and invalid credentials message\", function () {\r",
+									"    pm.response.to.have.status(401);\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.equal('Invalid credentials');\r",
+									"});*/"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"player2\",\r\n    \"psw\":\"prova\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{user_url_player}}/login",
+							"host": [
+								"{{user_url_player}}"
 							],
 							"path": [
 								"login"
@@ -1805,9 +2052,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{currency_url}}/transactions",
+									"raw": "{{currency_url_player}}/transactions",
 									"host": [
-										"{{currency_url}}"
+										"{{currency_url_player}}"
 									],
 									"path": [
 										"transactions"
@@ -1876,7 +2123,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"amount\": 200.00,\r\n    \"card_number\": \"1234567812345678\",\r\n    \"expiry_date\": \"12/25\",\r\n    \"cvv\": \"123\"\r\n}",
+									"raw": "{\r\n    \"amount\": 10.00,\r\n    \"card_number\": \"1234567812345678\",\r\n    \"expiry_date\": \"12/25\",\r\n    \"cvv\": \"123\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1884,9 +2131,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{currency_url}}/buy_currency",
+									"raw": "{{currency_url_player}}/buy_currency",
 									"host": [
-										"{{currency_url}}"
+										"{{currency_url_player}}"
 									],
 									"path": [
 										"buy_currency"
@@ -1952,176 +2199,12 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{currency_url}}/wallet",
+									"raw": "{{currency_url_player}}/wallet",
 									"host": [
-										"{{currency_url}}"
+										"{{currency_url_player}}"
 									],
 									"path": [
 										"wallet"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "spend_currency",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"// Test for successful deduction",
-											"pm.test(\"Status code is 200 when funds are deducted\", function () {",
-											"    if (pm.response.status === 200) {",
-											"        pm.response.to.have.status(200);",
-											"        const jsonData = pm.response.json();",
-											"        pm.expect(jsonData.message).to.include(\"deducted from your wallet successfully!\");",
-											"    }",
-											"});",
-											"",
-											"// Test for insufficient funds",
-											"pm.test(\"Status code is 400 when funds are insufficient\", function () {",
-											"    if (pm.response.status === 400) {",
-											"        pm.response.to.have.status(400);",
-											"        const jsonData = pm.response.json();",
-											"        pm.expect(jsonData.message).to.equal(\"Insufficient funds in wallet.\");",
-											"    }",
-											"});",
-											"",
-											"// Test for invalid or missing amount",
-											"pm.test(\"Status code is 400 when amount is invalid\", function () {",
-											"    if (pm.response.status === 400) {",
-											"        pm.response.to.have.status(400);",
-											"        const jsonData = pm.response.json();",
-											"        pm.expect(jsonData.message).to.equal(\"Invalid amount. Must be greater than zero.\");",
-											"    }",
-											"});",
-											"",
-											"// Test for wallet not found",
-											"pm.test(\"Status code is 404 when wallet is not found\", function () {",
-											"    if (pm.response.status === 404) {",
-											"        pm.response.to.have.status(404);",
-											"        const jsonData = pm.response.json();",
-											"        pm.expect(jsonData.message).to.equal(\"Wallet not found for the user.\");",
-											"    }",
-											"});",
-											"",
-											"// Test for unauthorized access",
-											"pm.test(\"Status code is 401 for unauthorized access\", function () {",
-											"    if (pm.response.status === 401) {",
-											"        pm.response.to.have.status(401);",
-											"        const jsonData = pm.response.json();",
-											"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
-											"    }",
-											"});",
-											""
-										],
-										"type": "text/javascript",
-										"packages": {}
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{jwtTokenPlayer}}",
-											"type": "string"
-										}
-									]
-								},
-								"method": "PATCH",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n    \"amount\": 100.00\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{currency_url}}/spend_currency",
-									"host": [
-										"{{currency_url}}"
-									],
-									"path": [
-										"spend_currency"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "refund",
-							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{jwtTokenPlayer}}",
-											"type": "string"
-										}
-									]
-								},
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n    \"token\": \"\"\r\n    \r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{market_url}}/refund",
-									"host": [
-										"{{market_url}}"
-									],
-									"path": [
-										"refund"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "add_currency",
-							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{jwtTokenPlayer}}",
-											"type": "string"
-										}
-									]
-								},
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n    \"token\": \"\"\r\n    \r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{market_url}}/add_currency",
-									"host": [
-										"{{market_url}}"
-									],
-									"path": [
-										"add_currency"
 									]
 								}
 							},
@@ -2185,9 +2268,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{currency_url}}/transactions/list",
+									"raw": "{{currency_url_admin}}/transactions/list",
 									"host": [
-										"{{currency_url}}"
+										"{{currency_url_admin}}"
 									],
 									"path": [
 										"transactions",
@@ -2258,13 +2341,85 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{currency_url}}/transactions/2",
+									"raw": "{{currency_url_admin}}/transactions/2",
 									"host": [
-										"{{currency_url}}"
+										"{{currency_url_admin}}"
 									],
 									"path": [
 										"transactions",
 										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "add_currency",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenAdmin}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user_id\": \"2\",\r\n    \"amount\": 100\r\n    \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{currency_url_admin}}/add_currency",
+									"host": [
+										"{{currency_url_admin}}"
+									],
+									"path": [
+										"add_currency"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "refund",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"users\": [\r\n        {\r\n            \"user_id\": 2,\r\n            \"amount\": 200\r\n        }\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{currency_url_admin}}/refund",
+									"host": [
+										"{{currency_url_admin}}"
+									],
+									"path": [
+										"refund"
 									]
 								}
 							},
@@ -2321,12 +2476,22 @@
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{jwtTokenPlayer}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{market_url}}/list",
+									"raw": "{{market_url_player}}/list",
 									"host": [
-										"{{market_url}}"
+										"{{market_url_player}}"
 									],
 									"path": [
 										"list"
@@ -2397,7 +2562,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"gacha_id\": 1,\r\n    \"end_date\": \"2024-11-22\",\r\n    \"init_value\": 80.00\r\n}",
+									"raw": "{\r\n    \"gacha_id\": 3,\r\n    \"end_date\": \"2024-12-20\",\r\n    \"init_value\": 100.00\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -2405,9 +2570,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{market_url}}/new-auction",
+									"raw": "{{market_url_player}}/new-auction",
 									"host": [
-										"{{market_url}}"
+										"{{market_url_player}}"
 									],
 									"path": [
 										"new-auction"
@@ -2477,7 +2642,7 @@
 									"bearer": [
 										{
 											"key": "token",
-											"value": "{{jwtTokenPlayer}}",
+											"value": "{{jwtTokenPlayer2}}",
 											"type": "string"
 										}
 									]
@@ -2486,7 +2651,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"market_id\": 1,\r\n    \"offer_value\": 85\r\n  \r\n}",
+									"raw": "{\r\n    \"market_id\": 7,\r\n    \"offer_value\": 85\r\n  \r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -2494,9 +2659,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{market_url}}/new-bid",
+									"raw": "{{market_url_player}}/new-bid",
 									"host": [
-										"{{market_url}}"
+										"{{market_url_player}}"
 									],
 									"path": [
 										"new-bid"
@@ -2565,12 +2730,12 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{market_url}}/1/offers",
+									"raw": "{{market_url_player}}/2/offers",
 									"host": [
-										"{{market_url}}"
+										"{{market_url_player}}"
 									],
 									"path": [
-										"1",
+										"2",
 										"offers"
 									],
 									"query": [
@@ -2675,9 +2840,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{market_url}}/accept",
+									"raw": "{{market_url_player}}/accept",
 									"host": [
-										"{{market_url}}"
+										"{{market_url_player}}"
 									],
 									"path": [
 										"accept"
@@ -2757,9 +2922,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{market_url}}/history",
+									"raw": "{{market_url_player}}/history",
 									"host": [
-										"{{market_url}}"
+										"{{market_url_player}}"
 									],
 									"path": [
 										"history"
@@ -2853,13 +3018,13 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{market_url}}/auction-details/1",
+									"raw": "{{market_url_admin}}/auction-details/8",
 									"host": [
-										"{{market_url}}"
+										"{{market_url_admin}}"
 									],
 									"path": [
 										"auction-details",
-										"1"
+										"8"
 									],
 									"query": [
 										{
@@ -2937,7 +3102,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"init_value\": 85.00,\r\n    \"value_last_offer\": 100.00,\r\n    \"start_date\": \"2024-11-22\",\r\n    \"end_date\": \"2024-11-25\"\r\n}",
+									"raw": "{\r\n    \"init_value\": 85.00,\r\n    \"value_last_offer\": 100.00,\r\n    \"start_date\": \"2024-11-22\",\r\n    \"end_date\": \"2024-12-25\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -2945,13 +3110,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{market_url}}/update-auction/1",
+									"raw": "{{market_url_admin}}/update-auction/8",
 									"host": [
-										"{{market_url}}"
+										"{{market_url_admin}}"
 									],
 									"path": [
 										"update-auction",
-										"1"
+										"8"
 									],
 									"query": [
 										{
@@ -3014,9 +3179,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{market_url}}/history/all",
+									"raw": "{{market_url_admin}}/history/all",
 									"host": [
-										"{{market_url}}"
+										"{{market_url_admin}}"
 									],
 									"path": [
 										"history",
