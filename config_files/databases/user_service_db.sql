@@ -9,8 +9,7 @@ CREATE TABLE UserData (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
     role ENUM('Admin','Player') NOT NULL,
-    psw VARCHAR(100) NOT NULL,
-    id_image INT
+    psw VARCHAR(100) NOT NULL
 );
 
 
