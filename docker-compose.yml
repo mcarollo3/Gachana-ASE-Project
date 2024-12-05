@@ -230,6 +230,7 @@ services:
       - https_gateway_admin_cert
       - https_gateway_admin_key
     restart: always
+    entrypoint: ["sh", "-c", "sleep 10 && nginx -g 'daemon off;'"]
 
   nginx_player:
     image: nginx:latest
@@ -249,6 +250,7 @@ services:
       - https_gateway_player_cert
       - https_gateway_player_key
     restart: always
+    entrypoint: ["sh", "-c", "sleep 10 && nginx -g 'daemon off;'"]
 
 volumes:
   user_data:
