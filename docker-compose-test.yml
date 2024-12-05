@@ -1,0 +1,320 @@
+services:
+  user_db:
+    image: mysql:latest
+    container_name: user_db
+    environment:
+      MYSQL_DATABASE: UserService
+    volumes:
+      - user_data:/var/lib/mysql
+      - ./config_files/databases/user_service_db.sql:/docker-entrypoint-initdb.d/user_service_db.sql
+      - ./config_files/user/my.cnf:/etc/mysql/my.cnf
+      - ./scripts/load_secrets.sh:/app/load_secrets.sh
+
+    networks:
+      - api_network_admin
+      - api_network_player
+    secrets:
+      - db_root_password
+      - db_user
+      - db_password
+      - db_https_user_cert
+      - db_https_user_key
+    entrypoint:
+      ["/bin/bash", "/app/load_secrets.sh", "docker-entrypoint.sh", "mysqld"]
+    restart: always
+
+  gacha_db:
+    image: mysql:latest
+    container_name: gacha_db
+    environment:
+      MYSQL_DATABASE: GachaService
+    volumes:
+      - gacha_data:/var/lib/mysql
+      - ./config_files/databases/gacha_service_db.sql:/docker-entrypoint-initdb.d/gacha_service_db.sql
+      - ./config_files/gacha/my.cnf:/etc/mysql/my.cnf
+      - ./scripts/load_secrets.sh:/app/load_secrets.sh
+
+    networks:
+      - api_network_admin
+      - api_network_player
+    secrets:
+      - db_root_password
+      - db_user
+      - db_password
+      - db_https_gacha_cert
+      - db_https_gacha_key
+    entrypoint:
+      ["/bin/bash", "/app/load_secrets.sh", "docker-entrypoint.sh", "mysqld"]
+    restart: always
+
+  market_db:
+    image: mysql:latest
+    container_name: market_db
+    environment:
+      MYSQL_DATABASE: MarketService
+
+    volumes:
+      - market_data:/var/lib/mysql
+      - ./config_files/databases/market_service_db.sql:/docker-entrypoint-initdb.d/market_service_db.sql
+      - ./config_files/market/my.cnf:/etc/mysql/my.cnf
+      - ./scripts/load_secrets.sh:/app/load_secrets.sh
+    networks:
+      - api_network_admin
+      - api_network_player
+    secrets:
+      - db_root_password
+      - db_user
+      - db_password
+      - db_https_market_cert
+      - db_https_market_key
+    entrypoint:
+      ["/bin/bash", "/app/load_secrets.sh", "docker-entrypoint.sh", "mysqld"]
+    restart: always
+
+  currency_db:
+    image: mysql:latest
+    container_name: currency_db
+    environment:
+      MYSQL_DATABASE: CurrencyService
+    volumes:
+      - currency_data:/var/lib/mysql
+      - ./config_files/databases/currency_service_db.sql:/docker-entrypoint-initdb.d/currency_service_db.sql
+      - ./config_files/currency/my.cnf:/etc/mysql/my.cnf
+      - ./scripts/load_secrets.sh:/app/load_secrets.sh
+    networks:
+      - api_network_admin
+      - api_network_player
+    secrets:
+      - db_root_password
+      - db_user
+      - db_password
+      - db_https_currency_cert
+      - db_https_currency_key
+    entrypoint:
+      ["/bin/bash", "/app/load_secrets.sh", "docker-entrypoint.sh", "mysqld"]
+    restart: always
+
+  user_service:
+    build:
+      context: ./backend/user_service
+    container_name: user_service
+    environment:
+      DB_HOST: "user_db"
+      DB_NAME: "UserService"
+      DB_USER: "/run/secrets/db_user"
+      DB_PASSWORD: "/run/secrets/db_password"
+      SECRET_KEY: "/run/secrets/jwt_secret"
+    depends_on:
+      - user_db
+    secrets:
+      - jwt_secret
+      - https_user_cert
+      - https_user_key
+      - db_user
+      - db_password
+      - db_https_user_cert
+      - db_https_user_key
+      - cryptography_key
+    volumes:
+      - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
+      - ./backend/utils/get_secrets.py:/app/get_secrets.py
+      - ./backend/utils/make_requests.py:/app/make_requests.py
+    networks:
+      - api_network_admin
+      - api_network_player
+    restart: always
+
+  gacha_service:
+    build:
+      context: ./backend/gacha_service
+      dockerfile: Dockerfile_test
+    container_name: gacha_service
+    environment:
+      DB_HOST: "gacha_db"
+      DB_NAME: "GachaService"
+      DB_USER: "/run/secrets/db_user"
+      DB_PASSWORD: "/run/secrets/db_password"
+      SECRET_KEY: "/run/secrets/jwt_secret"
+    depends_on:
+      - gacha_db
+    secrets:
+      - jwt_secret
+      - https_gacha_cert
+      - https_gacha_key
+      - db_user
+      - db_password
+      - db_https_gacha_cert
+      - db_https_gacha_key
+    volumes:
+      - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
+      - ./backend/utils/get_secrets.py:/app/get_secrets.py
+      - ./backend/utils/make_requests.py:/app/make_requests.py
+      - ./gachas:/app/gachas
+    networks:
+      - api_network_admin
+      - api_network_player
+    restart: always
+
+  currency_service:
+    build:
+      context: ./backend/currency_service
+    container_name: currency_service
+    environment:
+      DB_HOST: "currency_db"
+      DB_NAME: "CurrencyService"
+      DB_USER: "/run/secrets/db_user"
+      DB_PASSWORD: "/run/secrets/db_password"
+      SECRET_KEY: "/run/secrets/jwt_secret"
+    depends_on:
+      - currency_db
+    secrets:
+      - jwt_secret
+      - https_currency_cert
+      - https_currency_key
+      - db_user
+      - db_password
+      - db_https_currency_cert
+      - db_https_currency_key
+    volumes:
+      - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
+      - ./backend/utils/get_secrets.py:/app/get_secrets.py
+      - ./backend/utils/make_requests.py:/app/make_requests.py
+    networks:
+      - api_network_admin
+      - api_network_player
+    restart: always
+
+  market_service:
+    build:
+      context: ./backend/market_service
+    container_name: market_service
+    environment:
+      DB_HOST: "market_db"
+      DB_NAME: "MarketService"
+      DB_USER: "/run/secrets/db_user"
+      DB_PASSWORD: "/run/secrets/db_password"
+      SECRET_KEY: "/run/secrets/jwt_secret"
+    depends_on:
+      - market_db
+    secrets:
+      - jwt_secret
+      - https_market_cert
+      - https_market_key
+      - db_user
+      - db_password
+      - db_https_market_cert
+      - db_https_market_key
+    volumes:
+      - ./backend/utils/decode_auth_token.py:/app/decode_auth_token.py
+      - ./backend/utils/get_secrets.py:/app/get_secrets.py
+      - ./backend/utils/make_requests.py:/app/make_requests.py
+    networks:
+      - api_network_admin
+      - api_network_player
+    restart: always
+
+  nginx:
+    image: nginx:latest
+    container_name: api_gateway
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx/default_admin.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - user_service
+      - gacha_service
+      - currency_service
+      - market_service
+    networks:
+      - api_network_admin
+    secrets:
+      - https_gateway_admin_cert
+      - https_gateway_admin_key
+    restart: always
+
+  nginx_player:
+    image: nginx:latest
+    container_name: api_gateway_player
+    ports:
+      - "444:443"
+    volumes:
+      - ./nginx/default_player.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - user_service
+      - gacha_service
+      - currency_service
+      - market_service
+    networks:
+      - api_network_player
+    secrets:
+      - https_gateway_player_cert
+      - https_gateway_player_key
+    restart: always
+
+volumes:
+  user_data:
+    name: user_db_volume
+  gacha_data:
+    name: gacha_db_volume
+  market_data:
+    name: market_db_volume
+  currency_data:
+    name: currency_db_volume
+
+secrets:
+  cryptography_key:
+    file: ./secrets/cryptography/key.txt
+  https_gateway_admin_cert:
+    file: ./secrets/https/gateway/admin/cert.pem
+  https_gateway_admin_key:
+    file: ./secrets/https/gateway/admin/key.pem
+  https_gateway_player_cert:
+    file: ./secrets/https/gateway/player/cert.pem
+  https_gateway_player_key:
+    file: ./secrets/https/gateway/player/key.pem
+  https_user_cert:
+    file: ./secrets/https/user/cert.pem
+  https_user_key:
+    file: ./secrets/https/user/key.pem
+  https_gacha_cert:
+    file: ./secrets/https/gacha/cert.pem
+  https_gacha_key:
+    file: ./secrets/https/gacha/key.pem
+  https_currency_cert:
+    file: ./secrets/https/currency/cert.pem
+  https_currency_key:
+    file: ./secrets/https/currency/key.pem
+  https_market_cert:
+    file: ./secrets/https/market/cert.pem
+  https_market_key:
+    file: ./secrets/https/market/key.pem
+  jwt_secret:
+    file: ./secrets/jwt_secrets.txt
+  db_root_password:
+    file: ./secrets/db/db_root_password.txt
+  db_user:
+    file: ./secrets/db/db_user.txt
+  db_password:
+    file: ./secrets/db/db_password.txt
+  db_https_user_cert:
+    file: ./secrets/db/https/user_db/cert.pem
+  db_https_user_key:
+    file: ./secrets/db/https/user_db/key.pem
+  db_https_gacha_cert:
+    file: ./secrets/db/https/gacha_db/cert.pem
+  db_https_gacha_key:
+    file: ./secrets/db/https/gacha_db/key.pem
+  db_https_market_cert:
+    file: ./secrets/db/https/market_db/cert.pem
+  db_https_market_key:
+    file: ./secrets/db/https/market_db/key.pem
+  db_https_currency_cert:
+    file: ./secrets/db/https/currency_db/cert.pem
+  db_https_currency_key:
+    file: ./secrets/db/https/currency_db/key.pem
+
+networks:
+  api_network_admin:
+    driver: bridge
+  api_network_player:
+    driver: bridge
