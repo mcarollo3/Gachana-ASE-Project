@@ -1,5 +1,7 @@
 from flask import Flask, json, request, make_response, jsonify, send_file
+import time
 import mysql.connector
+from mysql.connector import Error
 import os
 from decode_auth_token import decode_token, token_required
 from get_secrets import get_secret_value
@@ -28,16 +30,31 @@ def get_db_connection():
     ssl_cert = "/run/secrets/db_https_gacha_cert"
     ssl_key = "/run/secrets/db_https_gacha_key"
 
-    return mysql.connector.connect(
-        host=os.environ.get("DB_HOST"),
-        user=get_secret_value(os.environ.get("DB_USER")),
-        password=get_secret_value(os.environ.get("DB_PASSWORD")),
-        database=os.environ.get("DB_NAME"),
-        ssl_ca=ssl_ca,
-        ssl_cert=ssl_cert,
-        ssl_key=ssl_key,
-    )
-
+    max_retries = 5
+    retry_delay = 5
+    for attempt in range(max_retries):
+        try:
+            connection = mysql.connector.connect(
+                host=os.environ.get("DB_HOST"),
+                user=get_secret_value(os.environ.get("DB_USER")),
+                password=get_secret_value(os.environ.get("DB_PASSWORD")),
+                database=os.environ.get("DB_NAME"),
+                ssl_ca=ssl_ca,
+                ssl_cert=ssl_cert,
+                ssl_key=ssl_key,
+            )
+            if connection.is_connected():
+                print("Database connection successful!")
+                return connection
+        except Error as e:
+            print(f"Attempt {attempt + 1} failed: {e}")
+            if attempt + 1 < max_retries:
+                print(f"Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+            else:
+                print("Max retries reached. Exiting.")
+                raise e
+    raise Exception("Unable to connect to the database after multiple attempts.")
 
 def sanitize_input(input_value):
     if isinstance(input_value, str):

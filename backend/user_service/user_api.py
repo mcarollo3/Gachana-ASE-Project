@@ -1,5 +1,7 @@
 from flask import Flask, jsonify, request
+import time
 import mysql.connector
+from mysql.connector import Error
 import os
 import jwt
 import datetime
@@ -27,16 +29,31 @@ def get_db_connection():
     ssl_cert = "/run/secrets/db_https_user_cert"
     ssl_key = "/run/secrets/db_https_user_key"
 
-    return mysql.connector.connect(
-        host=os.environ.get("DB_HOST"),
-        user=get_secret_value(os.environ.get("DB_USER")),
-        password=get_secret_value(os.environ.get("DB_PASSWORD")),
-        database=os.environ.get("DB_NAME"),
-        ssl_ca=ssl_ca,
-        ssl_cert=ssl_cert,
-        ssl_key=ssl_key,
-    )
-
+    max_retries = 5
+    retry_delay = 5
+    for attempt in range(max_retries):
+        try:
+            connection = mysql.connector.connect(
+                host=os.environ.get("DB_HOST"),
+                user=get_secret_value(os.environ.get("DB_USER")),
+                password=get_secret_value(os.environ.get("DB_PASSWORD")),
+                database=os.environ.get("DB_NAME"),
+                ssl_ca=ssl_ca,
+                ssl_cert=ssl_cert,
+                ssl_key=ssl_key,
+            )
+            if connection.is_connected():
+                print("Database connection successful!")
+                return connection
+        except Error as e:
+            print(f"Attempt {attempt + 1} failed: {e}")
+            if attempt + 1 < max_retries:
+                print(f"Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+            else:
+                print("Max retries reached. Exiting.")
+                raise e
+    raise Exception("Unable to connect to the database after multiple attempts.")
 
 def create_initial_users():
     connection = get_db_connection()
