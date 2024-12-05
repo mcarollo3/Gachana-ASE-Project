@@ -1,62 +1,70 @@
 from locust import HttpUser, task, between
-import random
-import string
+from collections import Counter
+import json
 
-class UserServiceLoadTest(HttpUser):
-    wait_time = between(1, 3)  # Attesa tra richieste
-    host = "https://localhost:443"  # API Gateway Admin
-    base_path = "/admin/user"  # Path base configurato in Nginx per user_service
+class GachaPlayerLoadTest(HttpUser):
+    wait_time = between(1, 3)  # Tempo di attesa casuale tra richieste
+    host = "https://localhost:444"  # API Gateway Player
+    base_path = "/player/gacha"  # Path base per le operazioni di gacha
+    login_path = "/player/user/login"  # Path per il login
+
+    # Contatore per tracciare la distribuzione delle rarità
+    rarity_distribution = Counter()
+    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJyb2xlIjoiUGxheWVyIiwiZXhwIjoxNzMzNDE4MTAyfQ.sOZIo8Dbyx-a1nhgfeNegyJCp6vEB3mNRSbg1gYgdMA"
+    
 
     def on_start(self):
-        """Simula l'inizializzazione dell'utente: registrazione e login."""
-        self.username = self.random_string(8)
-        self.password = "Str0ngP@ssw0rd!"  # Password forte predefinita
-        self.token = None
-        if not self.signup():
-            print("Registrazione fallita. Interrompo il test.")
-            return
-        if not self.login():
-            print("Login fallito. Interrompo il test.")
-            return
+        """Esegui il login per generare un token JWT valido."""
+        self.username = "player"  # Cambia con un utente valido
+        self.password = "prova"   # Cambia con una password valida
+        self.login()
 
-    @staticmethod
-    def random_string(length):
-        """Genera una stringa casuale."""
-        return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
-
-    def signup(self):
-        """Esegue la registrazione di un nuovo utente."""
-        response = self.client.post(f"{self.base_path}/signup", json={
-            "username": self.username,
-            "psw": self.password
-        }, verify=False)
-        print(f"Signup Response: {response.status_code} - {response.text}")
-        return response.status_code == 201
-
-    def login(self):
-        """Esegue il login e salva il token JWT."""
-        response = self.client.post(f"{self.base_path}/login", json={
-            "username": self.username,
-            "psw": self.password
-        }, verify=False)
-        print(f"Login Response: {response.status_code} - {response.text}")
-        if response.status_code == 200:
-            self.token = response.json().get("token")
-            return True
-        return False
+    #def login(self):
+     #   """Effettua il login per ottenere un token JWT."""
+      #  response = self.client.post(
+       #     self.login_path,
+        #    json={"username": self.username, "psw": self.password},
+        #    verify=False
+        #)
+        #if response.status_code == 200:
+        #    self.token = response.json().get("token")
+        #    print(f"Login riuscito. Token ottenuto: {self.token}")
+        #else:
+        #    print(f"Errore durante il login: {response.status_code} - {response.text}")
 
     @task(1)
-    def test_get_users(self):
-        """Testa l'endpoint per ottenere tutti gli utenti (solo admin)."""
-        if self.token:
-            headers = {"Authorization": f"Bearer {self.token}"}
-            response = self.client.get(f"{self.base_path}/list", headers=headers, verify=False)
-            print(f"GET /list Response: {response.status_code} - {response.text}")
+    def gacha_info(self):
+        """Testa l'endpoint di informazioni del gacha."""   
 
-    @task(2)
-    def test_logout(self):
-        """Testa il logout dell'utente."""
+
+    @task(3)
+    def gacha_roll(self):
+        """Testa l'endpoint di roll del gacha."""
         if self.token:
             headers = {"Authorization": f"Bearer {self.token}"}
-            response = self.client.post(f"{self.base_path}/logout", headers=headers, verify=False)
-            print(f"POST /logout Response: {response.status_code} - {response.text}")
+            response = self.client.post(f"{self.base_path}/roll", headers=headers, verify=False)
+
+            if response.status_code == 200:
+                # Estrai la rarità dalla risposta JSON
+                rarity = response.json().get("rarity", "unknown")
+                self.rarity_distribution[rarity] += 1
+                print(f"Rarity: {rarity}")
+            else:
+                print(f"Gacha roll failed: {response.status_code} - {response.text}")
+
+    @task(1)
+    def gacha_inventory(self):
+        """Testa l'endpoint per visualizzare l'inventario del giocatore."""
+        if self.token:
+            headers = {"Authorization": f"Bearer {self.token}"}
+            response = self.client.get(f"{self.base_path}/inventory", headers=headers, verify=False)
+
+            if response.status_code == 200:
+                print(f"Inventory: {response.json()}")
+            else:
+                print(f"Failed to retrieve inventory: {response.status_code} - {response.text}")
+
+    def on_stop(self):
+        """Mostra la distribuzione delle rarità al termine del test."""
+        print("\nFinal Gacha Rarity Distribution:")
+        print(json.dumps(self.rarity_distribution, indent=4))
