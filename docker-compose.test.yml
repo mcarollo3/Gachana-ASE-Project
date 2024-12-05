@@ -21,6 +21,73 @@ services:
       ["/bin/bash", "/app/load_secrets.sh", "docker-entrypoint.sh", "mysqld"]
     restart: always
 
+  gacha_db:
+    image: mysql:latest
+    container_name: gacha_db
+    environment:
+      MYSQL_DATABASE: GachaService
+    volumes:
+      - gacha_data:/var/lib/mysql
+      - ./config_files/databases/gacha_service_db.sql:/docker-entrypoint-initdb.d/gacha_service_db.sql
+      - ./config_files/gacha/my.cnf:/etc/mysql/my.cnf
+      - ./scripts/load_secrets.sh:/app/load_secrets.sh
+    networks:
+      - gacha
+    secrets:
+      - db_root_password
+      - db_user
+      - db_password
+      - db_https_gacha_cert
+      - db_https_gacha_key
+    entrypoint:
+      ["/bin/bash", "/app/load_secrets.sh", "docker-entrypoint.sh", "mysqld"]
+    restart: always
+
+  market_db:
+    image: mysql:latest
+    container_name: market_db
+    environment:
+      MYSQL_DATABASE: MarketService
+
+    volumes:
+      - market_data:/var/lib/mysql
+      - ./config_files/databases/market_service_db.sql:/docker-entrypoint-initdb.d/market_service_db.sql
+      - ./config_files/market/my.cnf:/etc/mysql/my.cnf
+      - ./scripts/load_secrets.sh:/app/load_secrets.sh
+    networks:
+      - market
+    secrets:
+      - db_root_password
+      - db_user
+      - db_password
+      - db_https_market_cert
+      - db_https_market_key
+    entrypoint:
+      ["/bin/bash", "/app/load_secrets.sh", "docker-entrypoint.sh", "mysqld"]
+    restart: always
+
+  currency_db:
+    image: mysql:latest
+    container_name: currency_db
+    environment:
+      MYSQL_DATABASE: CurrencyService
+    volumes:
+      - currency_data:/var/lib/mysql
+      - ./config_files/databases/currency_service_db.sql:/docker-entrypoint-initdb.d/currency_service_db.sql
+      - ./config_files/currency/my.cnf:/etc/mysql/my.cnf
+      - ./scripts/load_secrets.sh:/app/load_secrets.sh
+    networks:
+      - currency
+    secrets:
+      - db_root_password
+      - db_user
+      - db_password
+      - db_https_currency_cert
+      - db_https_currency_key
+    entrypoint:
+      ["/bin/bash", "/app/load_secrets.sh", "docker-entrypoint.sh", "mysqld"]
+    restart: always
+
   user_service:
     build:
       context: ./backend/user_service
@@ -53,9 +120,106 @@ services:
       - user
     restart: always
 
+  gacha_service:
+    build:
+      context: ./backend/gacha_service
+    container_name: gacha_service
+    environment:
+      DB_HOST: "gacha_db"
+      DB_NAME: "GachaService"
+      DB_USER: "/run/secrets/db_user"
+      DB_PASSWORD: "/run/secrets/db_password"
+      SECRET_KEY: "/run/secrets/jwt_secret"
+    depends_on:
+      - gacha_db
+    ports:
+      - "5001:5001"
+    secrets:
+      - jwt_secret
+      - https_gacha_cert
+      - https_gacha_key
+      - db_user
+      - db_password
+      - db_https_gacha_cert
+      - db_https_gacha_key
+    volumes:
+      - ./backend/utils/decode_auth_token_test.py:/app/decode_auth_token.py
+      - ./backend/utils/get_secrets.py:/app/get_secrets.py
+      - ./backend/utils/make_requests.py:/app/make_requests.py
+      - ./gachas:/app/gachas
+    networks:
+      - gacha
+    restart: always
+
+  currency_service:
+    build:
+      context: ./backend/currency_service
+    container_name: currency_service
+    environment:
+      DB_HOST: "currency_db"
+      DB_NAME: "CurrencyService"
+      DB_USER: "/run/secrets/db_user"
+      DB_PASSWORD: "/run/secrets/db_password"
+      SECRET_KEY: "/run/secrets/jwt_secret"
+    depends_on:
+      - currency_db
+    ports:
+      - "5002:5002"
+    secrets:
+      - jwt_secret
+      - https_currency_cert
+      - https_currency_key
+      - db_user
+      - db_password
+      - db_https_currency_cert
+      - db_https_currency_key
+    volumes:
+      - ./backend/utils/decode_auth_token_test.py:/app/decode_auth_token.py
+      - ./backend/utils/get_secrets.py:/app/get_secrets.py
+      - ./backend/utils/make_requests.py:/app/make_requests.py
+    networks:
+      - currency
+    restart: always
+
+  market_service:
+    build:
+      context: ./backend/market_service
+    container_name: market_service
+    environment:
+      DB_HOST: "market_db"
+      DB_NAME: "MarketService"
+      DB_USER: "/run/secrets/db_user"
+      DB_PASSWORD: "/run/secrets/db_password"
+      SECRET_KEY: "/run/secrets/jwt_secret"
+    depends_on:
+      - market_db
+    ports:
+      - "5003:5003"
+    secrets:
+      - jwt_secret
+      - https_market_cert
+      - https_market_key
+      - db_user
+      - db_password
+      - db_https_market_cert
+      - db_https_market_key
+    volumes:
+      - ./backend/utils/decode_auth_token_test.py:/app/decode_auth_token.py
+      - ./backend/utils/get_secrets.py:/app/get_secrets.py
+      - ./backend/utils/make_requests.py:/app/make_requests.py
+    networks:
+      - market
+    restart: always
+
 volumes:
   user_data:
     name: user_db_volume
+  gacha_data:
+    name: gacha_db_volume
+  market_data:
+    name: market_db_volume
+  currency_data:
+    name: currency_db_volume
 
 secrets:
   cryptography_key:
@@ -111,4 +275,10 @@ secrets:
 
 networks:
   user:
+    driver: bridge
+  gacha:
+    driver: bridge
+  market:
+    driver: bridge
+  currency:
     driver: bridge
