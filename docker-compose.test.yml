@@ -1,0 +1,114 @@
+services:
+  user_db:
+    image: mysql:latest
+    container_name: user_db
+    environment:
+      MYSQL_DATABASE: UserService
+    volumes:
+      - user_data:/var/lib/mysql
+      - ./config_files/databases/user_service_db.sql:/docker-entrypoint-initdb.d/user_service_db.sql
+      - ./config_files/user/my.cnf:/etc/mysql/my.cnf
+      - ./scripts/load_secrets.sh:/app/load_secrets.sh
+    networks:
+      - user
+    secrets:
+      - db_root_password
+      - db_user
+      - db_password
+      - db_https_user_cert
+      - db_https_user_key
+    entrypoint:
+      ["/bin/bash", "/app/load_secrets.sh", "docker-entrypoint.sh", "mysqld"]
+    restart: always
+
+  user_service:
+    build:
+      context: ./backend/user_service
+      dockerfile: Dockerfile_test
+    container_name: user_service
+    environment:
+      DB_HOST: "user_db"
+      DB_NAME: "UserService"
+      DB_USER: "/run/secrets/db_user"
+      DB_PASSWORD: "/run/secrets/db_password"
+      SECRET_KEY: "/run/secrets/jwt_secret"
+    depends_on:
+      - user_db
+    ports:
+      - "5000:5000"
+    secrets:
+      - jwt_secret
+      - https_user_cert
+      - https_user_key
+      - db_user
+      - db_password
+      - db_https_user_cert
+      - db_https_user_key
+      - cryptography_key
+    volumes:
+      - ./backend/utils/decode_auth_token_test.py:/app/decode_auth_token.py
+      - ./backend/utils/get_secrets.py:/app/get_secrets.py
+      - ./backend/utils/make_requests.py:/app/make_requests.py
+    networks:
+      - user
+    restart: always
+
+volumes:
+  user_data:
+    name: user_db_volume
+
+secrets:
+  cryptography_key:
+    file: ./secrets/cryptography/key.txt
+  https_gateway_admin_cert:
+    file: ./secrets/https/gateway/admin/cert.pem
+  https_gateway_admin_key:
+    file: ./secrets/https/gateway/admin/key.pem
+  https_gateway_player_cert:
+    file: ./secrets/https/gateway/player/cert.pem
+  https_gateway_player_key:
+    file: ./secrets/https/gateway/player/key.pem
+  https_user_cert:
+    file: ./secrets/https/user/cert.pem
+  https_user_key:
+    file: ./secrets/https/user/key.pem
+  https_gacha_cert:
+    file: ./secrets/https/gacha/cert.pem
+  https_gacha_key:
+    file: ./secrets/https/gacha/key.pem
+  https_currency_cert:
+    file: ./secrets/https/currency/cert.pem
+  https_currency_key:
+    file: ./secrets/https/currency/key.pem
+  https_market_cert:
+    file: ./secrets/https/market/cert.pem
+  https_market_key:
+    file: ./secrets/https/market/key.pem
+  jwt_secret:
+    file: ./secrets/jwt_secrets.txt
+  db_root_password:
+    file: ./secrets/db/db_root_password.txt
+  db_user:
+    file: ./secrets/db/db_user.txt
+  db_password:
+    file: ./secrets/db/db_password.txt
+  db_https_user_cert:
+    file: ./secrets/db/https/user_db/cert.pem
+  db_https_user_key:
+    file: ./secrets/db/https/user_db/key.pem
+  db_https_gacha_cert:
+    file: ./secrets/db/https/gacha_db/cert.pem
+  db_https_gacha_key:
+    file: ./secrets/db/https/gacha_db/key.pem
+  db_https_market_cert:
+    file: ./secrets/db/https/market_db/cert.pem
+  db_https_market_key:
+    file: ./secrets/db/https/market_db/key.pem
+  db_https_currency_cert:
+    file: ./secrets/db/https/currency_db/cert.pem
+  db_https_currency_key:
+    file: ./secrets/db/https/currency_db/key.pem
+
+networks:
+  user:
+    driver: bridge

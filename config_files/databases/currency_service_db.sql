@@ -24,3 +24,5 @@ CREATE TABLE Transaction_History (
 	FOREIGN KEY (wallet_id) REFERENCES Wallets(id) ON DELETE CASCADE
 );
 
+INSERT INTO Wallets (user_id, wallet)
+VALUES (2, 3000000.00);
