@@ -12,10 +12,22 @@ topology_template:
       type: micro.nodes.Service
       requirements:
       - interaction: gacha_db
+      - interaction:
+          node: currency_service
+          relationship: t
     market_service:
       type: micro.nodes.Service
       requirements:
       - interaction: market_db
+      - interaction:
+          node: gacha_service
+          relationship: t
+      - interaction:
+          node: currency_service
+          relationship: t
+      - interaction:
+          node: user_service
+          relationship: t
     currency_db:
       type: micro.nodes.Datastore
     gacha_db:
