@@ -170,6 +170,28 @@ def registration():
     return jsonify({"message": f"User {username} added!"}), 201
 
 
+@app.route("/check_token_blacklist", methods=["POST"])
+def check_token_blacklist():
+    # Ottieni il token dalla richiesta
+    data = request.get_json()
+    token = data.get("token")
+
+    # Verifica se il token è presente nella blacklist
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT token FROM TokenBlacklist WHERE token = %s;", (token,))
+    blacklisted_token = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    if blacklisted_token:
+        return jsonify({"message": "Token is blacklisted!"}), 403
+    else:
+        return jsonify({"message": "Token is not blacklisted."}), 200
+
+
 # Endpoint di login con sanificazione input
 @app.route("/login", methods=["POST"])
 def login():
