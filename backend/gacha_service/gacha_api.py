@@ -15,6 +15,8 @@ CERT_FILE = "/run/secrets/https_gacha_cert"
 KEY_FILE = "/run/secrets/https_gacha_key"
 CURRENCY_URL = "https://currency_service:5002"
 
+mock_check_and_deduct = None
+mock_refund = None
 
 app = Flask(__name__)
 SECRET_KEY = get_secret_value(os.environ.get("SECRET_KEY"))
@@ -30,7 +32,6 @@ def get_db_connection():
 
     max_retries = 5
     retry_delay = 5
-
     for attempt in range(max_retries):
         try:
             connection = mysql.connector.connect(
@@ -42,7 +43,6 @@ def get_db_connection():
                 ssl_cert=ssl_cert,
                 ssl_key=ssl_key,
             )
-
             if connection.is_connected():
                 print("Database connection successful!")
                 return connection
@@ -54,9 +54,7 @@ def get_db_connection():
             else:
                 print("Max retries reached. Exiting.")
                 raise e
-
     raise Exception("Unable to connect to the database after multiple attempts.")
-
 
 def sanitize_input(input_value):
     if isinstance(input_value, str):
@@ -246,21 +244,24 @@ def get_available_gacha(gacha_id):
 
     return jsonify(available_gacha), 200
 
-
 @app.route("/roll", methods=["POST"])
 @token_required(role_required="Player")
 def roll_gacha():
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
-    hasEnoughWallet = make_request(
-        CURRENCY_URL + "/check_and_deduct",
-        method="POST",
-        data={"amount": 500},
-        headers={
-            "Authorization": "Bearer " + request.headers.get("Authorization", ""),
-            "Content-Type": "application/json",
-        },
-        cert=(CERT_FILE, KEY_FILE),
-    )
+
+    if mock_check_and_deduct:
+        hasEnoughWallet = mock_check_and_deduct()
+    else:
+        hasEnoughWallet = make_request(
+            CURRENCY_URL + "/check_and_deduct",
+            method="POST",
+            data={"amount": 500},
+            headers={
+                "Authorization": "Bearer " + request.headers.get("Authorization", ""),
+                "Content-Type": "application/json",
+            },
+            cert=(CERT_FILE, KEY_FILE),
+        )
 
     if hasEnoughWallet.status_code != 200:
         return (
@@ -472,7 +473,6 @@ def add_gacha():
         201,
     )
 
-
 @app.route("/delete/<int:gacha_id>", methods=["DELETE"])
 @token_required(role_required="Admin")
 def delete_gacha(gacha_id):
@@ -510,17 +510,20 @@ def delete_gacha(gacha_id):
         cursor.close()
         connection.close()
         if len(user_ids) > 0:
-            refundUsers = make_request(
-                CURRENCY_URL + "/refund",
-                method="POST",
-                data={"users": user_ids},
-                headers={
-                    "Authorization": "Bearer "
-                    + request.headers.get("Authorization", ""),
-                    "Content-Type": "application/json",
-                },
-                cert=(CERT_FILE, KEY_FILE),
-            )
+            if mock_refund:
+                refundUsers = mock_refund
+            else:
+                refundUsers = make_request(
+                    CURRENCY_URL + "/refund",
+                    method="POST",
+                    data={"users": user_ids},
+                    headers={
+                        "Authorization": "Bearer "
+                        + request.headers.get("Authorization", ""),
+                        "Content-Type": "application/json",
+                    },
+                    cert=(CERT_FILE, KEY_FILE),
+                )
 
             if refundUsers.status_code == 200:
                 return (
