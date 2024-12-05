@@ -21,6 +21,13 @@ CURRENCY_URL = "https://currency_service:5002"
 GACHA_URL = "https://gacha_service:5001"
 USER_URL = "https://user_service:5000"
 
+mock_add_currency = None
+mock_check_and_deduct = None
+mock_collection = None
+mock_collection_add = None
+mock_login = None
+mock_refund = None
+mock_remove = None
 
 # Get DB Connection
 def get_db_connection():
@@ -30,7 +37,6 @@ def get_db_connection():
 
     max_retries = 5
     retry_delay = 5
-
     for attempt in range(max_retries):
         try:
             connection = mysql.connector.connect(
@@ -42,7 +48,6 @@ def get_db_connection():
                 ssl_cert=ssl_cert,
                 ssl_key=ssl_key,
             )
-
             if connection.is_connected():
                 print("Database connection successful!")
                 return connection
@@ -54,9 +59,7 @@ def get_db_connection():
             else:
                 print("Max retries reached. Exiting.")
                 raise e
-
     raise Exception("Unable to connect to the database after multiple attempts.")
-
 
 def sanitize_input(data, data_type):
 
@@ -79,7 +82,6 @@ def sanitize_input(data, data_type):
             return None
     return data
 
-
 @app.route("/list", methods=["GET"])
 @token_required(role_required=["Admin", "Player"])
 def get_market_items():
@@ -101,12 +103,15 @@ def get_market_items():
     ]
 
     if len(offer_list) > 0:
-        adminLogin = make_request(
-            USER_URL + "/login",
-            method="POST",
-            data={"username": "admin", "psw": "gachana"},
-            cert=(CERT_FILE, KEY_FILE),
-        )
+        if mock_login:
+            adminLogin = mock_login()
+        else:
+            adminLogin = make_request(
+                USER_URL + "/login",
+                method="POST",
+                data={"username": "admin", "psw": "gachana"},
+                cert=(CERT_FILE, KEY_FILE),
+            )
 
         if adminLogin.status_code != 200:
             return (
@@ -115,16 +120,20 @@ def get_market_items():
             )
 
         tokenAdmin = adminLogin.json().get("token")
-        refundUsers = make_request(
-            CURRENCY_URL + "/refund",
-            method="POST",
-            data=offer_list,
-            headers={
-                "Authorization": "Bearer " + tokenAdmin,
-                "Content-Type": "application/json",
-            },
-            cert=(CERT_FILE, KEY_FILE),
-        )
+        if mock_refund:
+            refundUsers = mock_refund()
+        else:
+            refundUsers = make_request(
+                CURRENCY_URL + "/refund",
+                method="POST",
+                data=offer_list,
+                headers={
+                    "Authorization": "Bearer " + tokenAdmin,
+                    "Content-Type": "application/json",
+                },
+                cert=(CERT_FILE, KEY_FILE),
+            )
+
         if refundUsers.status_code != 200:
             return (
                 jsonify(refundUsers.json()),
@@ -151,7 +160,6 @@ def get_market_items():
         return jsonify(market_items), 200
     else:
         return jsonify({"message": "No auctions available."}), 200
-
 
 @app.route("/new-auction", methods=["POST"])
 @token_required(role_required="Player")
@@ -186,15 +194,18 @@ def post_market_item():
         return jsonify({"message": "Invalid end date format. Use 'YYYY-MM-DD'."}), 400
 
     # Check if user has the gacha
-    hasChosenGacha = make_request(
-        GACHA_URL + f"/collection/{gacha_id}",
-        method="GET",
-        headers={
-            "Authorization": "Bearer " + request.headers.get("Authorization", ""),
-            "Content-Type": "application/json",
-        },
-        cert=(CERT_FILE, KEY_FILE),
-    )
+    if mock_collection:
+        hasChosenGacha = mock_collection()
+    else:
+        hasChosenGacha = make_request(
+            GACHA_URL + f"/collection/{gacha_id}",
+            method="GET",
+            headers={
+                "Authorization": "Bearer " + request.headers.get("Authorization", ""),
+                "Content-Type": "application/json",
+            },
+            cert=(CERT_FILE, KEY_FILE),
+        )
 
     if hasChosenGacha.status_code != 200:
         return (
@@ -254,16 +265,19 @@ def make_offer():
     if user_id == market_creator_id:
         return jsonify({"message": "You cannot bid on your own auction."}), 403
 
-    hasEnoughWallet = make_request(
-        CURRENCY_URL + "/check_and_deduct",
-        method="POST",
-        data={"amount": offer_value},
-        headers={
-            "Authorization": "Bearer " + request.headers.get("Authorization", ""),
-            "Content-Type": "application/json",
-        },
-        cert=(CERT_FILE, KEY_FILE),
-    )
+    if mock_check_and_deduct:
+        hasEnoughWallet = mock_check_and_deduct()
+    else:
+        hasEnoughWallet = make_request(
+            CURRENCY_URL + "/check_and_deduct",
+            method="POST",
+            data={"amount": offer_value},
+            headers={
+                "Authorization": "Bearer " + request.headers.get("Authorization", ""),
+                "Content-Type": "application/json",
+            },
+            cert=(CERT_FILE, KEY_FILE),
+        )
 
     if hasEnoughWallet.status_code != 200:
         return (
@@ -441,12 +455,15 @@ def accept_offer():
 
     offer_id, offer_value = accepted_offer
 
-    adminLogin = make_request(
-        USER_URL + "/login",
-        method="POST",
-        data={"username": "admin", "psw": "gachana"},
-        cert=(CERT_FILE, KEY_FILE),
-    )
+    if mock_login:
+        adminLogin = mock_login()
+    else:
+        adminLogin = make_request(
+            USER_URL + "/login",
+            method="POST",
+            data={"username": "admin", "psw": "gachana"},
+            cert=(CERT_FILE, KEY_FILE),
+        )
 
     if adminLogin.status_code != 200:
         return (
@@ -465,19 +482,23 @@ def accept_offer():
     rejected_offers = cursor.fetchall()
 
     if len(rejected_offers) > 0:
-        refundUsers = make_request(
-            CURRENCY_URL + "/refund",
-            method="POST",
-            data=[
-                {"user_id": user_id, "amount": value}
-                for user_id, value in rejected_offers
-            ],
-            headers={
-                "Authorization": "Bearer " + tokenAdmin,
-                "Content-Type": "application/json",
-            },
-            cert=(CERT_FILE, KEY_FILE),
-        )
+        if mock_refund:
+            refundUsers = mock_refund()
+        else:
+            refundUsers = make_request(
+                CURRENCY_URL + "/refund",
+                method="POST",
+                data=[
+                    {"user_id": user_id, "amount": value}
+                    for user_id, value in rejected_offers
+                ],
+                headers={
+                    "Authorization": "Bearer " + tokenAdmin,
+                    "Content-Type": "application/json",
+                },
+                cert=(CERT_FILE, KEY_FILE),
+            )
+
         if refundUsers.status_code != 200:
             return (
                 jsonify(refundUsers.json()),
@@ -508,16 +529,19 @@ def accept_offer():
     cursor.close()
     connection.close()
 
-    addGachaToBuyer = make_request(
-        GACHA_URL + "/collection/add",
-        method="POST",
-        data={"user_id": buyer_id, "gacha_id": gacha_id},
-        headers={
-            "Authorization": "Bearer " + tokenAdmin,
-            "Content-Type": "application/json",
-        },
-        cert=(CERT_FILE, KEY_FILE),
-    )
+    if mock_collection_add:
+        addGachaToBuyer = mock_collection_add
+    else:
+        addGachaToBuyer = make_request(
+            GACHA_URL + "/collection/add",
+            method="POST",
+            data={"user_id": buyer_id, "gacha_id": gacha_id},
+            headers={
+                "Authorization": "Bearer " + tokenAdmin,
+                "Content-Type": "application/json",
+            },
+            cert=(CERT_FILE, KEY_FILE),
+        )
 
     if addGachaToBuyer.status_code != 200:
         return (
@@ -525,16 +549,19 @@ def accept_offer():
             addGachaToBuyer.status_code,
         )
 
-    removeGachaFromSeller = make_request(
-        GACHA_URL + "/remove",
-        method="POST",
-        data={"user_id": buyer_id, "gacha_id": gacha_id},
-        headers={
-            "Authorization": "Bearer " + tokenAdmin,
-            "Content-Type": "application/json",
-        },
-        cert=(CERT_FILE, KEY_FILE),
-    )
+    if mock_remove:
+        removeGachaFromSeller = mock_remove()
+    else:
+        removeGachaFromSeller = make_request(
+            GACHA_URL + "/remove",
+            method="POST",
+            data={"user_id": buyer_id, "gacha_id": gacha_id},
+            headers={
+                "Authorization": "Bearer " + tokenAdmin,
+                "Content-Type": "application/json",
+            },
+            cert=(CERT_FILE, KEY_FILE),
+        )
 
     if removeGachaFromSeller.status_code != 200:
         return (
@@ -542,15 +569,18 @@ def accept_offer():
             removeGachaFromSeller.status_code,
         )
 
-    addCurrencyToSeller = make_request(
-        CURRENCY_URL + "/add_currency",
-        method="POST",
-        data={"user_id": seller_id, "amount": float(offer_value)},
-        headers={
-            "Authorization": f"Bearer {tokenAdmin}",
-        },
-        cert=(CERT_FILE, KEY_FILE),
-    )
+    if mock_add_currency:
+        addCurrencyToSeller = mock_add_currency()
+    else:
+        addCurrencyToSeller = make_request(
+            CURRENCY_URL + "/add_currency",
+            method="POST",
+            data={"user_id": seller_id, "amount": float(offer_value)},
+            headers={
+                "Authorization": f"Bearer {tokenAdmin}",
+            },
+            cert=(CERT_FILE, KEY_FILE),
+        )
 
     if addCurrencyToSeller.status_code != 200:
         try:
