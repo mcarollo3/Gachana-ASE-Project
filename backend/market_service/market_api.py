@@ -29,6 +29,7 @@ mock_login = None
 mock_refund = None
 mock_remove = None
 
+
 # Get DB Connection
 def get_db_connection():
     ssl_ca = "/run/secrets/db_https_market_cert"
@@ -61,6 +62,7 @@ def get_db_connection():
                 raise e
     raise Exception("Unable to connect to the database after multiple attempts.")
 
+
 def sanitize_input(data, data_type):
 
     if data_type == "string":
@@ -81,6 +83,7 @@ def sanitize_input(data, data_type):
         except ValueError:
             return None
     return data
+
 
 @app.route("/list", methods=["GET"])
 @token_required(role_required=["Admin", "Player"])
@@ -160,6 +163,7 @@ def get_market_items():
         return jsonify(market_items), 200
     else:
         return jsonify({"message": "No auctions available."}), 200
+
 
 @app.route("/new-auction", methods=["POST"])
 @token_required(role_required="Player")
@@ -756,7 +760,7 @@ def get_market_history():
 
 if __name__ == "__main__":
     app.run(
-        debug=True,
+        debug=False,
         host="0.0.0.0",
         port=5003,
         ssl_context=("/run/secrets/https_market_cert", "/run/secrets/https_market_key"),

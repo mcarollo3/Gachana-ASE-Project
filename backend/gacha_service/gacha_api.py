@@ -56,6 +56,7 @@ def get_db_connection():
                 raise e
     raise Exception("Unable to connect to the database after multiple attempts.")
 
+
 def sanitize_input(input_value):
     if isinstance(input_value, str):
         return bleach.clean(input_value.strip())
@@ -243,6 +244,7 @@ def get_available_gacha(gacha_id):
         return jsonify({"message": "User already owns this gacha."}), 200
 
     return jsonify(available_gacha), 200
+
 
 @app.route("/roll", methods=["POST"])
 @token_required(role_required="Player")
@@ -473,6 +475,7 @@ def add_gacha():
         201,
     )
 
+
 @app.route("/delete/<int:gacha_id>", methods=["DELETE"])
 @token_required(role_required="Admin")
 def delete_gacha(gacha_id):
@@ -657,7 +660,7 @@ def remove_gacha():
 
 if __name__ == "__main__":
     app.run(
-        debug=True,
+        debug=False,
         host="0.0.0.0",
         port=5001,
         ssl_context=("/run/secrets/https_gacha_cert", "/run/secrets/https_gacha_key"),

@@ -505,7 +505,7 @@ def add_new_currency():
 
 if __name__ == "__main__":
     app.run(
-        debug=True,
+        debug=False,
         host="0.0.0.0",
         port=5002,
         ssl_context=(

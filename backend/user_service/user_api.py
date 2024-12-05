@@ -13,6 +13,9 @@ import re
 
 app = Flask(__name__)
 
+TOKEN_EXPIRED = "Token expired"
+INVALID_TOKEN = "Invalid token"
+
 
 SECRET_KEY = get_secret_value(os.environ.get("SECRET_KEY"))
 if not SECRET_KEY:
@@ -227,9 +230,9 @@ def logout():
 
     token_status = decode_token(token)
 
-    if token_status == "Token expired":
+    if token_status == TOKEN_EXPIRED:
         return jsonify({"message": "Token has expired!"}), 403
-    elif token_status == "Invalid token":
+    elif token_status == INVALID_TOKEN:
         return jsonify({"message": "Invalid token!"}), 403
 
     try:
@@ -443,7 +446,7 @@ def update_account():
 
 if __name__ == "__main__":
     app.run(
-        debug=True,
+        debug=False,
         host="0.0.0.0",
         port=5000,
         ssl_context=("/run/secrets/https_user_cert", "/run/secrets/https_user_key"),

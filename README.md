@@ -65,6 +65,7 @@ Each service has a dedicated MySQL database:
    - Admin Gateway: `https://localhost:443`
    - Player Gateway: `https://localhost:444`
 5. After all containers have started, wait about ten seconds before starting testing
+6. If you receive a 502 Bad Gateway response restart Api Gateways containers
 
 ### Docker Compose Details
 
