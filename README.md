@@ -1,73 +1,116 @@
-Here is your updated README with the added information about the Postman collection:
-
----
-
 # Gachana Microservices Application
 
-This project is a microservices-based application hosted on Docker, consisting of several services including UserService, GachaService, MarketService, and CurrencyService. All services are connected via Docker Compose, and they are routed through an Nginx API Gateway.
+## Overview
 
-## Prerequisites
+This is a microservices-based application designed to manage gacha systems. The architecture includes four core microservices:
 
-- Docker
-- Docker Compose
-- .env file for storing sensitive data
+- **UserService**: Handles user-related operations.
+- **GachaService**: Manages gacha draws and items.
+- **MarketService**: Supports marketplace operations.
+- **CurrencyService**: Manages virtual currencies.
 
-## Setup Instructions
+Each microservice is associated with a dedicated database, and all services communicate internally over HTTPS using certificates. The application employs two API gateways managed by **NGINX**:
 
-### 1. Create the `.env` File
+- **Admin Gateway**: For administrative operations.
+- **Player Gateway**: For player-facing interactions.
 
-Before starting the application, you need to create a `.env` file at the root level of the project (same level as the `docker-compose.yml`). This file will store sensitive information, such as your JWT secret key.
+## Architecture
 
-- **SECRET_KEY**: This key is used for signing and verifying JWT tokens.
+### API Gateways
 
-Generate a secret key by visiting [https://jwtsecret.com/generate](https://jwtsecret.com/generate) and selecting a 64-character key. Then, add the following to your `.env` file:
+- **Admin Gateway**: Handles requests for administrative tasks.
 
-```env
-SECRET_KEY=your_generated_secret_key
+  - Example Routes:
+    - `https://localhost:443/admin/user` → UserService
+    - `https://localhost:443/admin/gacha` → GachaService
+    - `https://localhost:443/admin/currency` → CurrencyService
+    - `https://localhost:443/admin/market` → MarketService
+
+- **Player Gateway**: Handles requests for player interactions.
+  - Example Routes:
+    - `https://localhost:444/player/user` → UserService
+    - `https://localhost:444/player/gacha` → GachaService
+    - `https://localhost:444/player/currency` → CurrencyService
+    - `https://localhost:444/player/market` → MarketService
+
+### Databases
+
+Each service has a dedicated MySQL database:
+
+- **user_db**
+- **gacha_db**
+- **market_db**
+- **currency_db**
+
+### Security
+
+- All internal communication between microservices is encrypted using HTTPS and relies on service-specific certificates.
+- Sensitive information such as database credentials, JWT secrets, and certificates are securely managed using Docker Secrets.
+
+## Requirements
+
+- **Docker** and **Docker Compose** installed on the host machine.
+
+## Setup and Deployment
+
+### Steps to Run
+
+1. Clone the repository.
+2. Ensure Docker and Docker Compose are installed.
+3. Build and run the application:
+   ```bash
+   docker-compose up --build
+   ```
+4. The application will be accessible via the following endpoints:
+   - Admin Gateway: `https://localhost:443`
+   - Player Gateway: `https://localhost:444`
+5. After all containers have started, wait about ten seconds before starting testing
+
+### Docker Compose Details
+
+The application uses the following Docker Compose services:
+
+- **Databases**: MySQL instances for each microservice, preconfigured with their schemas.
+- **Microservices**: Individual containers for UserService, GachaService, MarketService, and CurrencyService.
+- **API Gateways**: Two NGINX-based gateways for routing requests.
+
+### Configuration
+
+The NGINX configuration files (`default_admin.conf` and `default_player.conf`) define routes to forward requests to the appropriate services.
+
+Example NGINX configuration for Admin UserService Gateway:
+
+```nginx
+location /admin/user/ {
+    proxy_pass https://user_service:5000/;
+    proxy_ssl_verify off;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
 ```
 
-### 2. Start the Application
+### Secrets Management
 
-Once the `.env` file is created and properly configured, use Docker Compose to bring up the services in detached mode.
+- Secrets such as passwords, certificates, and private keys are stored in the `secrets/` directory and managed using Docker Secrets.
+- Example:
+  - `db_root_password`: Stored in `secrets/db/db_root_password.txt`
+  - `jwt_secret`: Stored in `secrets/jwt_secrets.txt`
 
-```bash
-docker-compose up -d
-```
+## Testing the Application
 
-This will start all the microservices and the Nginx API Gateway. The services will be connected through a common network (`api_network`), and each service will be accessible via the API Gateway.
+### Postman Collection
 
-### 3. API Gateway Configuration
+To test the application, use the Postman collection located in the `docs/postman` folder. This folder contains:
 
-The API Gateway (Nginx) is configured to route requests to the appropriate microservices. The following locations are set up:
+- Collections for testing the entire application.
+- Collections for testing individual microservices in isolation (`docs/postman/unit-test`).
 
-- **UserService**: `http://localhost/user/` (Proxy to user service)
-- **GachaService**: `http://localhost/gacha/` (Proxy to gacha service)
-- **CurrencyService**: `http://localhost/currency/` (Proxy to currency service)
-- **MarketService**: `http://localhost/market/` (Proxy to market service)
+Additionally, the folder includes `env.postman` files with variables used in Postman to simplify testing.
 
-### 4. Service Endpoints
+**Note:** If the `current value` field remains empty during the import of `env.postman` files in Postman, you must manually copy the `initial value` into the `current value` field.
 
-The API Gateway will forward requests to the corresponding service based on the URL path. Here's the mapping:
+### Authentication for Microservices
 
-- **User Service**: `http://localhost/user/`  
-  (Access the User Service's endpoints like `/user/signup`, `/user/login`, etc.)
-
-- **Gacha Service**: `http://localhost/gacha/`  
-  (Access the Gacha Service's endpoints like `/gacha/collection`, etc.)
-
-- **Currency Service**: `http://localhost/currency/`  
-  (Access the Currency Service's endpoints like `/currency/wallet`, etc.)
-
-- **Market Service**: `http://localhost/market/`  
-  (Access the Market Service's endpoints like `/market/list`, etc.)
-
-### 5. Postman Collection
-
-A Postman collection containing all the API requests for the application can be found inside the `docs` directory of the project. This collection includes environment variables set in the `.env` file, allowing you to easily test the endpoints in the Postman app.
-
-To get started with the collection:
-
-1. Download the Postman collection from `docs/Postman_Collection.json`.
-2. Import the collection into your Postman app.
-
-This collection will provide you with all the necessary API calls for interacting with the microservices.
+When testing microservices in isolation, an authentication token is required for API calls. Each collection includes a login endpoint, which should be executed first to obtain the token. This ensures smooth execution of both positive and negative tests for all endpoints.

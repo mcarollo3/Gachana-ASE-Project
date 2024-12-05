@@ -1,0 +1,1 @@
+mettere in questa CARTELLA le collezioni di postman dei singoli microservizi
