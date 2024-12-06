@@ -1,0 +1,1948 @@
+{
+	"info": {
+		"_postman_id": "b1f2cdc0-c023-4476-900b-f815569536bd",
+		"name": "Gachana Integration Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39572870",
+		"_collection_link": "https://gachana.postman.co/workspace/Gachana-Workspace~ccd2cd2e-8e57-46e0-9577-e2befa5a4699/collection/39572870-b1f2cdc0-c023-4476-900b-f815569536bd?action=share&source=collection_link&creator=39572870"
+	},
+	"item": [
+		{
+			"name": "01. signup",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful signup (status 201)",
+							"pm.test(\"Endpoint responds with status 201 for successful signup\", function () {",
+							"    if (pm.response.code === 201) {",
+							"        pm.expect(pm.response.code).to.eql(201);",
+							"    }",
+							"});",
+							"",
+							"// Test for incomplete data (status 400)",
+							"pm.test(\"Should return 400 for incomplete data\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Incomplete data\");",
+							"    }",
+							"});",
+							"",
+							"// Test for invalid password format (status 400)",
+							"pm.test(\"Should return 400 for invalid password format\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Invalid password format\");",
+							"    }",
+							"});",
+							"",
+							"// Test for username already exists (status 400)",
+							"pm.test(\"Should return 400 if username already exists\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Username already exists\");",
+							"    }",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiQWRtaW4iLCJleHAiOjE3MzE2MDAwMzl9.fnYeO4BcoDjvp_n4q6M5zx5slIWcguxYVlIIWxsKgSc",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"marco2\",\r\n    \"psw\": \"proVa2prov@\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/signup",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "02. login player",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Assumendo che il token sia restituito nel corpo della risposta come \"token\"\r",
+							"const jsonData = pm.response.json();\r",
+							"\r",
+							"// Salva il token come variabile globale o d'ambiente\r",
+							"pm.environment.set(\"jwtTokenPlayer\", jsonData.token); // Usa pm.globals.set() per una variabile globale\r",
+							"\r",
+							"// Facoltativo: Stampa il token nella console di Postman per debugging\r",
+							"console.log(\"JWT Token salvato:\", jsonData.token);\r",
+							"\r",
+							"// Test for successful login (status 200)\r",
+							"pm.test(\"Should return status 200 for successful login\", function () {\r",
+							"    if (pm.response.code === 200) {\r",
+							"        pm.expect(pm.response.code).to.eql(200);\r",
+							"        const jsonData = pm.response.json();\r",
+							"        pm.expect(jsonData).to.have.property(\"token\");\r",
+							"        pm.expect(jsonData.token).to.be.a(\"string\").that.is.not.empty;\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"// Test for incomplete data (status 400)\r",
+							"pm.test(\"Should return 400 for incomplete data\", function () {\r",
+							"    if (pm.response.code === 400) {\r",
+							"        const jsonData = pm.response.json();\r",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Incomplete data\");\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"// Test for invalid credentials (status 401)\r",
+							"pm.test(\"Should return 401 for invalid credentials\", function () {\r",
+							"    if (pm.response.code === 401) {\r",
+							"        const jsonData = pm.response.json();\r",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Invalid credentials\");\r",
+							"    }\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"player\",\r\n    \"psw\":\"prova\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/login",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "03. get_user_collection",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Endpoint responds with status 200 or expected error codes\", function () {",
+							"    pm.expect([200, 401]).to.include(pm.response.code);",
+							"",
+							"    if (pm.response.code === 200) {",
+							"        pm.test(\"Response should be an array of objects\", function () {",
+							"            const jsonData = pm.response.json();",
+							"            pm.expect(jsonData).to.be.an(\"array\");",
+							"            ",
+							"            if (jsonData.length > 0) {",
+							"                jsonData.forEach(item => {",
+							"                    pm.test(\"Each item should have the required fields\", function () {",
+							"                        pm.expect(item).to.have.property(\"name\");",
+							"                        pm.expect(item).to.have.property(\"name_img\");",
+							"                        pm.expect(item).to.have.property(\"rarity\");",
+							"                        pm.expect(item).to.have.property(\"quantity\");",
+							"                    });",
+							"                });",
+							"            } else {",
+							"                pm.test(\"User owns no gachas.\", function () {",
+							"                    pm.expect(jsonData.message).to.eql(\"User owns no gachas.\");",
+							"                });",
+							"            }",
+							"        });",
+							"    }",
+							"",
+							"    if (pm.response.code === 401) {",
+							"        pm.test(\"Unauthorized response includes error message\", function () {",
+							"            const jsonData = pm.response.json();",
+							"            pm.expect(jsonData).to.have.property(\"message\");",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_player}}/collection",
+					"host": [
+						"{{gacha_url_player}}"
+					],
+					"path": [
+						"collection"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "04. get_user_gacha",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Endpoint responds with status 200 or expected error codes\", function () {",
+							"    pm.expect([200, 401]).to.include(pm.response.code);",
+							"",
+							"    if (pm.response.code === 200) {",
+							"        pm.test(\"Response should be an object\", function () {",
+							"            const jsonData = pm.response.json();",
+							"            pm.expect(jsonData).to.be.an(\"object\");",
+							"            pm.test(\"Object should have required fields\", function () {",
+							"                pm.expect(jsonData).to.have.property(\"name\");",
+							"                pm.expect(jsonData).to.have.property(\"description\");",
+							"                pm.expect(jsonData).to.have.property(\"rarity\");",
+							"            });",
+							"        });",
+							"    } else {",
+							"        pm.test(\"User owns no gachas.\", function () {",
+							"            const jsonData = pm.response.json();",
+							"            pm.expect(jsonData.message).to.eql(\"User owns no gachas.\");",
+							"        });",
+							"    }",
+							"",
+							"    if (pm.response.code === 401) {",
+							"        pm.test(\"Unauthorized response includes error message\", function () {",
+							"            const jsonData = pm.response.json();",
+							"            pm.expect(jsonData).to.have.property(\"message\");",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_player}}/collection/3",
+					"host": [
+						"{{gacha_url_player}}"
+					],
+					"path": [
+						"collection",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "05. get_available_gachas",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Endpoint responds with status 200 or expected error codes\", function () {",
+							"    pm.expect([200, 401]).to.include(pm.response.code);",
+							"",
+							"    if (pm.response.code === 200) {",
+							"        pm.test(\"Response should be an array of objects\", function () {",
+							"            const jsonData = pm.response.json();",
+							"            pm.expect(jsonData).to.be.an(\"array\");",
+							"",
+							"            if (jsonData.length > 0) {",
+							"                jsonData.forEach(item => {",
+							"                    pm.test(\"Each item should have required fields\", function () {",
+							"                        pm.expect(item).to.have.property(\"name\");",
+							"                        pm.expect(item).to.have.property(\"rarity\");",
+							"                    });",
+							"                });",
+							"            } else {",
+							"                pm.test(\"User owns every gacha.\", function () {",
+							"                    pm.expect(jsonData).to.have.property(\"message\");",
+							"                    pm.expect(jsonData.message).to.eql(\"User owns every gacha.\");",
+							"                });",
+							"            }",
+							"        });",
+							"    }",
+							"",
+							"    if (pm.response.code === 401) {",
+							"        pm.test(\"Unauthorized response includes error message\", function () {",
+							"            const jsonData = pm.response.json();",
+							"            pm.expect(jsonData).to.have.property(\"message\");",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_player}}/collection/available",
+					"host": [
+						"{{gacha_url_player}}"
+					],
+					"path": [
+						"collection",
+						"available"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "06. get_available_gacha",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Endpoint responds with status 200 or expected error codes\", function () {",
+							"    pm.expect([200, 401]).to.include(pm.response.code);",
+							"",
+							"    if (pm.response.code === 200) {",
+							"        pm.test(\"Response should be an object\", function () {",
+							"            const jsonData = pm.response.json();",
+							"            pm.expect(jsonData).to.be.an(\"object\");",
+							"",
+							"            if (Object.keys(jsonData).length > 0) {",
+							"                pm.test(\"Object should have required fields\", function () {",
+							"                    pm.expect(jsonData).to.have.property(\"name\");",
+							"                    pm.expect(jsonData).to.have.property(\"description\");",
+							"                    pm.expect(jsonData).to.have.property(\"name_img\");",
+							"                    pm.expect(jsonData).to.have.property(\"rarity\");",
+							"                });",
+							"            } else {",
+							"                pm.test(\"User already owns this gacha.\", function () {",
+							"                    pm.expect(jsonData).to.have.property(\"message\");",
+							"                    pm.expect(jsonData.message).to.eql(\"User already owns this gacha.\");",
+							"                });",
+							"            }",
+							"        });",
+							"    }",
+							"",
+							"    if (pm.response.code === 401) {",
+							"        pm.test(\"Unauthorized response includes error message\", function () {",
+							"            const jsonData = pm.response.json();",
+							"            pm.expect(jsonData).to.have.property(\"message\");",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_player}}/collection/available/12",
+					"host": [
+						"{{gacha_url_player}}"
+					],
+					"path": [
+						"collection",
+						"available",
+						"12"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "07. roll_gacha",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test that the endpoint responds with appropriate status codes",
+							"pm.test(\"Endpoint responds with status 200 or relevant error codes\", function () {",
+							"    pm.expect([200, 401, 403, 404, 500]).to.include(pm.response.code);",
+							"});",
+							"",
+							"// Test for valid JSON response",
+							"pm.test(\"Response should be a valid JSON object\", function () {",
+							"    pm.expect(pm.response.json()).to.be.an(\"object\");",
+							"});",
+							"",
+							"// Test for successful gacha roll",
+							"if (pm.response.code === 200) {",
+							"    pm.test(\"Response should contain successful roll message and gacha info\", function () {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\");",
+							"        pm.expect(jsonData.message).to.include(\"successfully rolled gacha\");",
+							"",
+							"        pm.expect(jsonData).to.have.property(\"gacha_info\");",
+							"        const gachaInfo = jsonData.gacha_info;",
+							"        pm.expect(gachaInfo).to.have.property(\"name\");",
+							"        pm.expect(gachaInfo.name).to.be.a(\"string\");",
+							"        pm.expect(gachaInfo).to.have.property(\"description\");",
+							"        pm.expect(gachaInfo.description).to.be.a(\"string\");",
+							"        pm.expect(gachaInfo).to.have.property(\"rarity\");",
+							"        pm.expect(gachaInfo.rarity).to.be.oneOf([",
+							"            \"Common\",",
+							"            \"Uncommon\",",
+							"            \"Rare\",",
+							"            \"Super Rare\",",
+							"            \"Legendary\",",
+							"        ]);",
+							"    });",
+							"}",
+							"",
+							"// Test for insufficient wallet balance",
+							"if (pm.response.code === 403) {",
+							"    pm.test(\"Should return 403 if user does not have enough wallet balance\", function () {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\");",
+							"        pm.expect(jsonData.message).to.include(\"Insufficient funds in wallet\");",
+							"    });",
+							"}",
+							"",
+							"// Test for unauthorized access",
+							"if (pm.response.code === 401) {",
+							"    pm.test(\"Should return 401 for unauthorized access\", function () {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\");",
+							"        pm.expect(jsonData.message).to.include(\"Could not access user data\");",
+							"    });",
+							"}",
+							"",
+							"// Test for gacha not found",
+							"if (pm.response.code === 404) {",
+							"    pm.test(\"Should return 404 if gacha not found\", function () {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\");",
+							"        pm.expect(jsonData.message).to.include(\"Gacha not found\");",
+							"    });",
+							"}",
+							"",
+							"// Test for unexpected server errors",
+							"if (pm.response.code === 500) {",
+							"    pm.test(\"Should handle server errors gracefully\", function () {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\");",
+							"    });",
+							"};",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_player}}/roll",
+					"host": [
+						"{{gacha_url_player}}"
+					],
+					"path": [
+						"roll"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "08. get_image",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Endpoint responds with status 200 or 404\", function () {",
+							"    const responseCode = pm.response.code;",
+							"    if (responseCode === 200) {",
+							"        pm.test(\"Response should return a valid image\", function () {",
+							"            pm.expect(pm.response.headers.get('Content-Type')).to.eql('image/png');",
+							"            pm.expect(pm.response.text()).to.not.be.empty;",
+							"        });",
+							"    }",
+							"    if (responseCode === 404) {",
+							"        pm.test(\"Image not found response includes error message\", function () {",
+							"            const jsonData = pm.response.json();",
+							"            pm.expect(jsonData).to.have.property(\"error\");",
+							"            pm.expect(jsonData.error).to.eql(\"Image not found\");",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenAdmin}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_admin}}/image/kuzco",
+					"host": [
+						"{{gacha_url_admin}}"
+					],
+					"path": [
+						"image",
+						"kuzco"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "09. get_transactions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful retrieval of transactions (status 200)",
+							"pm.test(\"Should return 200 with transaction data if the user has transactions\", function () {",
+							"    if (pm.response.code === 200) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.be.an('array').that.is.not.empty;",
+							"    } else {",
+							"        console.log(\"Unexpected response for successful transaction retrieval:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"// Test for unauthorized access (status 401)",
+							"pm.test(\"Should return 401 if the token is missing or invalid\", function () {",
+							"    if (pm.response.code === 401) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Could not access user data.\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for unauthorized access:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"// Test for no transactions found (status 404)",
+							"pm.test(\"Should return 404 if no transactions are found for the user\", function () {",
+							"    if (pm.response.code === 404) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"No transactions found for the user.\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for no transactions found:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{currency_url_player}}/transactions",
+					"host": [
+						"{{currency_url_player}}"
+					],
+					"path": [
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "10. new-auction",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful auction listing (status 201)",
+							"pm.test(\"Should return 201 and a confirmation message when a valid auction is posted\", function () {",
+							"    if (pm.response.code === 201) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\", \"Item listed for sale.\");",
+							"    }",
+							"});",
+							"",
+							"// Test for missing end date (status 400)",
+							"pm.test(\"Should return 400 when the end date is missing\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\", \"End date is required.\");",
+							"    }",
+							"});",
+							"",
+							"// Test for invalid end date format (status 400)",
+							"pm.test(\"Should return 400 when the end date format is invalid\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\", \"Invalid end date format. Use 'YYYY-MM-DD'.\");",
+							"    }",
+							"});",
+							"",
+							"// Test for end date not being at least one day after the current date (status 400)",
+							"pm.test(\"Should return 400 when the end date is less than one day after the current date\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\", \"End date must be at least one day after today.\");",
+							"    }",
+							"});",
+							"",
+							"// Test for unauthorized access (status 401)",
+							"pm.test(\"Should return 401 if the token is missing or invalid\", function () {",
+							"    if (pm.response.code === 401) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Unauthorized\");",
+							"    }",
+							"});",
+							"",
+							"// Test for failed gacha check (status code check, typically 400 or 404 depending on your implementation)",
+							"pm.test(\"Should return an appropriate response when the user does not have the chosen gacha\", function () {",
+							"    if (pm.response.code === 400 || pm.response.code === 404) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Could not access gacha or user data.\");",
+							"    }",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"gacha_id\": 3,\r\n    \"end_date\": \"2024-12-20\",\r\n    \"init_value\": 100.00\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{market_url_player}}/new-auction",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"new-auction"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "11. list",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful retrieval of market items (status 200)",
+							"pm.test(\"Should return 200 and a list of market items if there are items available\", function () {",
+							"    if (pm.response.code === 200) {",
+							"        const jsonData = pm.response.json();",
+							"        if (Array.isArray(jsonData)) {",
+							"            pm.expect(jsonData).to.be.an(\"array\").that.is.not.empty;",
+							"            pm.expect(jsonData[0]).to.have.property(\"id\");",
+							"            pm.expect(jsonData[0]).to.have.property(\"gacha_id\");",
+							"            pm.expect(jsonData[0]).to.have.property(\"user_id\");",
+							"            pm.expect(jsonData[0]).to.have.property(\"init_value\");",
+							"            pm.expect(jsonData[0]).to.have.property(\"value_last_offer\");",
+							"            pm.expect(jsonData[0]).to.have.property(\"start_date\");",
+							"            pm.expect(jsonData[0]).to.have.property(\"end_date\");",
+							"        } else {",
+							"            pm.expect(jsonData).to.have.property(\"message\").that.includes(\"No auctions available.\");",
+							"        }",
+							"    }",
+							"});",
+							"",
+							"// Test for unauthorized access (status 401)",
+							"pm.test(\"Should return 401 if the token is missing or invalid\", function () {",
+							"    if (pm.response.code === 401) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Unauthorized\");",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{market_url_player}}/list",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "12. logout player",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful logout (status 200)",
+							"pm.test(\"Should return 200 for successful logout\", function () {",
+							"    if (pm.response.code === 200) {",
+							"        pm.expect(pm.response.code).to.eql(200);",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\", \"Logged out successfully!\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for successful logout:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"// Test for already logged out token (status 400)",
+							"pm.test(\"Should return 400 if token is already logged out\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\", \"Token is already logged out!\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for already logged out token:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"// Test for expired token (status 403)",
+							"pm.test(\"Should return 403 for expired token\", function () {",
+							"    if (pm.response.code === 403) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\", \"Token has expired!\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for expired token:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"// Test for invalid token (status 403)",
+							"pm.test(\"Should return 403 for invalid token\", function () {",
+							"    if (pm.response.code === 403) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\", \"Invalid token!\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for invalid token:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"// Test for incomplete or malformed requests (status 400)",
+							"pm.test(\"Should return 400 if the request is incomplete or malformed\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"An error occurred while logging out.\");",
+							"    }",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/logout",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "13. login player2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Assumendo che il token sia restituito nel corpo della risposta come \"token\"\r",
+							"const jsonData = pm.response.json();\r",
+							"\r",
+							"// Salva il token come variabile globale o d'ambiente\r",
+							"pm.environment.set(\"jwtTokenPlayer2\", jsonData.token); // Usa pm.globals.set() per una variabile globale\r",
+							"\r",
+							"// Facoltativo: Stampa il token nella console di Postman per debugging\r",
+							"console.log(\"JWT Token salvato:\", jsonData.token);\r",
+							"\r",
+							"\r",
+							"// Test for successful login (status 200)\r",
+							"pm.test(\"Should return status 200 for successful login\", function () {\r",
+							"    if (pm.response.code === 200) {\r",
+							"        pm.expect(pm.response.code).to.eql(200);\r",
+							"        const jsonData = pm.response.json();\r",
+							"        pm.expect(jsonData).to.have.property(\"token\");\r",
+							"        pm.expect(jsonData.token).to.be.a(\"string\").that.is.not.empty;\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"// Test for incomplete data (status 400)\r",
+							"pm.test(\"Should return 400 for incomplete data\", function () {\r",
+							"    if (pm.response.code === 400) {\r",
+							"        const jsonData = pm.response.json();\r",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Incomplete data\");\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"// Test for invalid credentials (status 401)\r",
+							"pm.test(\"Should return 401 for invalid credentials\", function () {\r",
+							"    if (pm.response.code === 401) {\r",
+							"        const jsonData = pm.response.json();\r",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Invalid credentials\");\r",
+							"    }\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"player2\",\r\n    \"psw\":\"prova\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/login",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "14. buy_currency",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful currency purchase (status 200)",
+							"pm.test(\"Should return 200 for successful currency purchase\", function () {",
+							"    if (pm.response.code === 200) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"added to your wallet successfully!\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for successful currency purchase:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"// Test for invalid amount (status 400)",
+							"pm.test(\"Should return 400 if the amount is not positive\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Invalid amount. Must be greater than zero.\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for invalid amount:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"// Test for missing card details (status 400)",
+							"pm.test(\"Should return 400 if any card detail is missing\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Invalid card details. All fields are required.\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for missing card details:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"// Test for payment failure (status 400)",
+							"pm.test(\"Should return 400 for payment failure\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Payment failed. Please check your card details.\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for payment failure:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"// Test for server error (status 500)",
+							"pm.test(\"Should return 500 for unexpected server error\", function () {",
+							"    if (pm.response.code === 500) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"An error occurred while processing the transaction.\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for server error:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"// Test for unauthorized access (status 401)",
+							"pm.test(\"Should return 401 for unauthorized access\", function () {",
+							"    if (pm.response.code === 401) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Could not access user data.\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for unauthorized access:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"amount\": 10.00,\r\n    \"card_number\": \"1234567812345678\",\r\n    \"expiry_date\": \"12/25\",\r\n    \"cvv\": \"123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{currency_url_player}}/buy_currency",
+					"host": [
+						"{{currency_url_player}}"
+					],
+					"path": [
+						"buy_currency"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "16. wallet",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful wallet retrieval",
+							"pm.test(\"Status code is 200 when wallet is retrieved\", function () {",
+							"    if (pm.response.status === 200) {",
+							"        pm.response.to.have.status(200);",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.be.an('array');",
+							"        pm.expect(jsonData.length).to.equal(1); // Ensure exactly one wallet record",
+							"        pm.expect(jsonData[0]).to.have.property('wallet');",
+							"        pm.expect(jsonData[0].wallet).to.be.a('number'); // Wallet should be a numeric value",
+							"    }",
+							"});",
+							"",
+							"// Test for no wallet found",
+							"pm.test(\"Status code is 404 when no wallet is found\", function () {",
+							"    if (pm.response.status === 404) {",
+							"        pm.response.to.have.status(404);",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData.message).to.equal(\"No wallet found for the user.\");",
+							"    }",
+							"});",
+							"",
+							"// Test for unauthorized access",
+							"pm.test(\"Status code is 401 for unauthorized access\", function () {",
+							"    if (pm.response.status === 401) {",
+							"        pm.response.to.have.status(401);",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+							"    }",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{currency_url_player}}/wallet",
+					"host": [
+						"{{currency_url_player}}"
+					],
+					"path": [
+						"wallet"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "17. new-bid",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful bid placement or update",
+							"pm.test(\"Status code is 200 and bid processed successfully\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message).to.be.oneOf([",
+							"    \"Offer updated successfully.\",",
+							"    \"Offer placed successfully.\"]);",
+							"});",
+							"",
+							"// Test for missing token (unauthorized access)",
+							"pm.test(\"Status code is 401 when no token is provided\", function () {",
+							"    if (!pm.request.headers.has(\"Authorization\")) {",
+							"        pm.response.to.have.status(401);",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+							"    }",
+							"});",
+							"",
+							"// Test for missing required fields",
+							"pm.test(\"Status code is 400 for missing required fields\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    if (pm.response.code === 400) {",
+							"        pm.expect(jsonData.message).to.include(\"Market ID and offer value are required.\");",
+							"    }",
+							"});",
+							"",
+							"// Test for attempting to bid on own auction",
+							"pm.test(\"Status code is 403 when bidding on own auction\", function () {",
+							"    if (pm.response.code === 403) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData.message).to.equal(\"You cannot bid on your own auction.\");",
+							"    }",
+							"});",
+							"",
+							"// Test for non-existent market",
+							"pm.test(\"Status code is 404 for non-existent market\", function () {",
+							"    if (pm.response.code === 404) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData.message).to.equal(\"Market not found.\");",
+							"    }",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"market_id\": 1,\r\n    \"offer_value\": 120\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{market_url_player}}/new-bid",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"new-bid"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "18. logout player2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful logout (status 200)",
+							"pm.test(\"Should return 200 for successful logout\", function () {",
+							"    if (pm.response.code === 200) {",
+							"        pm.expect(pm.response.code).to.eql(200);",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\", \"Logged out successfully!\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for successful logout:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"// Test for already logged out token (status 400)",
+							"pm.test(\"Should return 400 if token is already logged out\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\", \"Token is already logged out!\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for already logged out token:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"// Test for expired token (status 403)",
+							"pm.test(\"Should return 403 for expired token\", function () {",
+							"    if (pm.response.code === 403) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\", \"Token has expired!\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for expired token:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"// Test for invalid token (status 403)",
+							"pm.test(\"Should return 403 for invalid token\", function () {",
+							"    if (pm.response.code === 403) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\", \"Invalid token!\");",
+							"    } else {",
+							"        console.log(\"Unexpected response for invalid token:\");",
+							"        console.log(\"Response Code:\", pm.response.code);",
+							"        console.log(\"Response Body:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"// Test for incomplete or malformed requests (status 400)",
+							"pm.test(\"Should return 400 if the request is incomplete or malformed\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"An error occurred while logging out.\");",
+							"    }",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/logout",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "19. login player",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Assumendo che il token sia restituito nel corpo della risposta come \"token\"\r",
+							"const jsonData = pm.response.json();\r",
+							"\r",
+							"// Salva il token come variabile globale o d'ambiente\r",
+							"pm.environment.set(\"jwtTokenPlayer\", jsonData.token); // Usa pm.globals.set() per una variabile globale\r",
+							"\r",
+							"// Facoltativo: Stampa il token nella console di Postman per debugging\r",
+							"console.log(\"JWT Token salvato:\", jsonData.token);\r",
+							"\r",
+							"// Test for successful login (status 200)\r",
+							"pm.test(\"Should return status 200 for successful login\", function () {\r",
+							"    if (pm.response.code === 200) {\r",
+							"        pm.expect(pm.response.code).to.eql(200);\r",
+							"        const jsonData = pm.response.json();\r",
+							"        pm.expect(jsonData).to.have.property(\"token\");\r",
+							"        pm.expect(jsonData.token).to.be.a(\"string\").that.is.not.empty;\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"// Test for incomplete data (status 400)\r",
+							"pm.test(\"Should return 400 for incomplete data\", function () {\r",
+							"    if (pm.response.code === 400) {\r",
+							"        const jsonData = pm.response.json();\r",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Incomplete data\");\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"// Test for invalid credentials (status 401)\r",
+							"pm.test(\"Should return 401 for invalid credentials\", function () {\r",
+							"    if (pm.response.code === 401) {\r",
+							"        const jsonData = pm.response.json();\r",
+							"        pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Invalid credentials\");\r",
+							"    }\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"player\",\r\n    \"psw\":\"prova\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/login",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "20. offers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful offer retrieval",
+							"pm.test(\"Status code is 200 and offers retrieved successfully\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"market_id\");",
+							"    pm.expect(jsonData).to.have.property(\"offers\").that.is.an(\"array\");",
+							"});",
+							"",
+							"// Test for missing token (unauthorized access)",
+							"pm.test(\"Status code is 401 when no token is provided\", function () {",
+							"    if (!pm.request.headers.has(\"Authorization\")) {",
+							"        pm.response.to.have.status(401);",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+							"    }",
+							"});",
+							"",
+							"// Test for non-existent market",
+							"pm.test(\"Status code is 404 for non-existent market\", function () {",
+							"    if (pm.response.code === 404) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData.message).to.equal(\"Market not found.\");",
+							"    }",
+							"});",
+							"",
+							"// Test for unauthorized access",
+							"pm.test(\"Status code is 403 when unauthorized to view offers\", function () {",
+							"    if (pm.response.code === 403) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData.message).to.equal(\"You are not authorized to view offers for this auction.\");",
+							"    }",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{market_url_player}}/1/offers",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"1",
+						"offers"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "21. accept",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful offer acceptance",
+							"pm.test(\"Status code is 200 and offer accepted successfully\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"message\", \"Offer accepted successfully.\");",
+							"});",
+							"",
+							"// Test for unauthorized access (missing or invalid token)",
+							"pm.test(\"Status code is 401 when no valid token is provided\", function () {",
+							"    if (!pm.request.headers.has(\"Authorization\")) {",
+							"        pm.response.to.have.status(401);",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+							"    }",
+							"});",
+							"",
+							"// Test for market not found or user not the owner of the market",
+							"pm.test(\"Status code is 403 if the market is not found or user is not the owner\", function () {",
+							"    if (pm.response.code === 403) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData.message).to.equal(\"Market not found or you are not the owner of this auction.\");",
+							"    }",
+							"});",
+							"",
+							"// Test for no offers found",
+							"pm.test(\"Status code is 404 if no offers exist for the market\", function () {",
+							"    if (pm.response.code === 404) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData.message).to.equal(\"No offers found for this market.\");",
+							"    }",
+							"});",
+							"",
+							"// Test for invalid offer from the buyer (offer not found)",
+							"pm.test(\"Status code is 404 if the offer from the buyer is not found\", function () {",
+							"    if (pm.response.code === 404) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData.message).to.equal(\"Offer not found for the specified buyer.\");",
+							"    }",
+							"});",
+							"",
+							"// Test for invalid request (missing market_id or buyer_id)",
+							"pm.test(\"Status code is 400 when market_id or buyer_id is missing\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const body = pm.request.body;",
+							"        if (!body || !body.market_id || !body.buyer_id) {",
+							"            pm.response.to.have.status(400);",
+							"            const jsonData = pm.response.json();",
+							"            pm.expect(jsonData.message).to.equal(\"Market ID and buyer ID are required.\");",
+							"        }",
+							"    }",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"market_id\": 1,\r\n    \"buyer_id\": 3\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{market_url_player}}/accept",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"accept"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "22. history",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful response (Status 200)",
+							"pm.test(\"Status code is 200 and returns transaction history\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('array');",
+							"    pm.expect(jsonData.length).to.be.above(0);",
+							"});",
+							"",
+							"// Test for no transactions found (Status 404)",
+							"pm.test(\"Status code is 404 if no market history is found\", function () {",
+							"    if (pm.response.code === 404) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"error\", \"No market history found for this user\");",
+							"    }",
+							"});",
+							"",
+							"// Test for unauthorized access (missing or invalid token)",
+							"pm.test(\"Status code is 401 when no valid token is provided\", function () {",
+							"    if (pm.response.code === 401) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData.message).to.equal(\"Could not access user data.\");",
+							"    }",
+							"});",
+							"",
+							"// Test for valid token and response format (should return an array of transactions)",
+							"pm.test(\"Response is an array with the correct structure\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    // Ensure each transaction in the response contains expected fields",
+							"    jsonData.forEach(transaction => {",
+							"        pm.expect(transaction).to.have.property(\"user_seller_id\");",
+							"        pm.expect(transaction).to.have.property(\"user_buyer_id\");",
+							"        pm.expect(transaction).to.have.property(\"gacha_value\");",
+							"        pm.expect(transaction).to.have.property(\"id_gacha\");",
+							"        pm.expect(transaction).to.have.property(\"date\");",
+							"    });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{market_url_player}}/history",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"history"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "23. update",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Endpoint responds with status 200 for successful account update",
+							"pm.test(\"Endpoint responds with status 200 for successful update\", function () {",
+							"    pm.expect(pm.response.code).to.eql(200);",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"message\", \"User information updated successfully\");",
+							"});",
+							"",
+							"// Test: Response should be a valid JSON object",
+							"pm.test(\"Response should be a valid JSON object\", function () {",
+							"    pm.expect(pm.response.json()).to.be.an(\"object\");",
+							"});",
+							"",
+							"// Test: Unauthorized user (should return 401)",
+							"pm.test(\"Should return 401 if user is not authorized\", function () {",
+							"    if (pm.response.code === 401) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\");",
+							"        pm.expect(jsonData.message).to.include(\"Could not access user data\");",
+							"    }",
+							"});",
+							"",
+							"// Test: Bad request for no data provided (should return 400)",
+							"pm.test(\"Should return 400 if no data is provided for update\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\");",
+							"        pm.expect(jsonData.message).to.include(\"No data provided for update\");",
+							"    }",
+							"});",
+							"",
+							"// Test: Invalid password format (should return 400)",
+							"pm.test(\"Should return 400 if password is invalid\", function () {",
+							"    if (pm.response.code === 400) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\");",
+							"        pm.expect(jsonData.message).to.include(\"Invalid password format\");",
+							"    }",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"player\",\r\n    \"psw\": \"prova1Prov@\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/update",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "24. delete",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Endpoint responds with status 200 for successful account deletion",
+							"pm.test(\"Endpoint responds with status 200 for successful deletion\", function () {",
+							"    pm.expect(pm.response.code).to.eql(200);",
+							"});",
+							"",
+							"// Test: Response is a valid JSON object",
+							"pm.test(\"Response should be a valid JSON object\", function () {",
+							"    pm.expect(pm.response.json()).to.be.an(\"object\");",
+							"});",
+							"",
+							"// Test: Successful account deletion should return the correct success message",
+							"pm.test(\"Response should confirm user account deletion\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"message\", \"User account deleted successfully!\");",
+							"});",
+							"",
+							"// Test: Unauthorized user (should return 401)",
+							"pm.test(\"Should return 401 if user is not authorized\", function () {",
+							"    if (pm.response.code === 401) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\");",
+							"        pm.expect(jsonData.message).to.include(\"Could not access user data\");",
+							"    }",
+							"});",
+							"",
+							"// Test: Ensure that a deleted user cannot be accessed again (should return 404)",
+							"pm.test(\"Should return 404 if trying to access a deleted user\", function () {",
+							"    if (pm.response.code === 404) {",
+							"        const jsonData = pm.response.json();",
+							"        pm.expect(jsonData).to.have.property(\"message\");",
+							"        pm.expect(jsonData.message).to.include(\"User not found\");",
+							"    }",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/delete",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"delete"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "gacha_url",
+			"value": "http://localhost/gacha",
+			"type": "default"
+		}
+	]
+}

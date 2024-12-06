@@ -20,6 +20,11 @@ jobs:
       run: |
         docker compose up -d --build
 
+    - name: Wait for services
+      run: |
+        echo "Waiting for services to be ready..."
+        sleep 15
+
     - name: Install Newman
       run: |
         npm install -g newman
@@ -28,8 +33,8 @@ jobs:
       env:
         BASE_URL: "http://localhost"
       run: |
-        newman run docs/Gachana.postman_collection.json \
-          --environment docs/env.postman_environment.json \
+        newman run docs/integrationTests/GachanaIntegratioTests.postman_collection.json \
+          --environment docs/integrationTests/env.postman_environment.json \
           --delay-request 1000 \
           --timeout 60000 \
           --reporters cli
