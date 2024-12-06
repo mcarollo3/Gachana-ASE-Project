@@ -123,6 +123,7 @@ services:
   gacha_service:
     build:
       context: ./backend/gacha_service
+      dockerfile: Dockerfile_test
     container_name: gacha_service
     environment:
       DB_HOST: "gacha_db"
@@ -154,6 +155,7 @@ services:
   currency_service:
     build:
       context: ./backend/currency_service
+      dockerfile: Dockerfile_test
     container_name: currency_service
     environment:
       DB_HOST: "currency_db"
@@ -184,6 +186,7 @@ services:
   market_service:
     build:
       context: ./backend/market_service
+      dockerfile: Dockerfile_test
     container_name: market_service
     environment:
       DB_HOST: "market_db"

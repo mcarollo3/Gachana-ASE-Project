@@ -1,0 +1,590 @@
+{
+	"info": {
+		"_postman_id": "94b1a86d-8e12-4f12-b88a-077d11964eaf",
+		"name": "Gacha Unit Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39572870",
+		"_collection_link": "https://gachana.postman.co/workspace/Gachana-Workspace~ccd2cd2e-8e57-46e0-9577-e2befa5a4699/collection/39718315-94b1a86d-8e12-4f12-b88a-077d11964eaf?action=share&source=collection_link&creator=39572870"
+	},
+	"item": [
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Assumendo che il token sia restituito nel corpo della risposta come \"token\"\r",
+							"const jsonData = pm.response.json();\r",
+							"\r",
+							"// Salva il token come variabile globale o d'ambiente\r",
+							"pm.environment.set(\"jwtTokenPlayer\", jsonData.token); // Usa pm.globals.set() per una variabile globale\r",
+							"\r",
+							"// Facoltativo: Stampa il token nella console di Postman per debugging\r",
+							"console.log(\"JWT Token salvato:\", jsonData.token);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"player\",\r\n    \"psw\":\"prova\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/login",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK get_user_collection",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 200",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response should be an array of objects\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an(\"array\");",
+							"    ",
+							"    if (jsonData.length > 0) {",
+							"        jsonData.forEach(item => {",
+							"            pm.test(\"Each item should have the required fields\", function () {",
+							"                pm.expect(item).to.have.property(\"name\");",
+							"                pm.expect(item).to.have.property(\"name_img\");",
+							"                pm.expect(item).to.have.property(\"rarity\");",
+							"                pm.expect(item).to.have.property(\"quantity\");",
+							"            });",
+							"        });",
+							"    }",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_player}}/collection",
+					"host": [
+						"{{gacha_url_player}}"
+					],
+					"path": [
+						"collection"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO get_user_collection",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 403",
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Token is missing!\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_player}}/collection",
+					"host": [
+						"{{gacha_url_player}}"
+					],
+					"path": [
+						"collection"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK get_user_gacha",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 200",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response should be an object\", function () {",
+							"    if (pm.response.code === 200) {",
+							"        pm.test(\"Response should be an object\", function () {",
+							"            const jsonData = pm.response.json();",
+							"            pm.expect(jsonData).to.be.an(\"object\");",
+							"            pm.test(\"Object should have required fields\", function () {",
+							"                pm.expect(jsonData).to.have.property(\"name\");",
+							"                pm.expect(jsonData).to.have.property(\"description\");",
+							"                pm.expect(jsonData).to.have.property(\"rarity\");",
+							"            });",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_player}}/collection/3",
+					"host": [
+						"{{gacha_url_player}}"
+					],
+					"path": [
+						"collection",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO get_user_gacha",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 404",
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Gacha not found or not owned by user.\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_player}}/collection/10",
+					"host": [
+						"{{gacha_url_player}}"
+					],
+					"path": [
+						"collection",
+						"10"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK get_available_gachas",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 200",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response should be an array of objects\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an(\"array\");",
+							"",
+							"    if (jsonData.length > 0) {",
+							"        jsonData.forEach(item => {",
+							"            pm.test(\"Each item should have required fields\", function () {",
+							"                pm.expect(item).to.have.property(\"name\");",
+							"                pm.expect(item).to.have.property(\"rarity\");",
+							"            });",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_player}}/collection/available",
+					"host": [
+						"{{gacha_url_player}}"
+					],
+					"path": [
+						"collection",
+						"available"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO get_available_gachas",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 403",
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Token is missing!\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_player}}/collection/available",
+					"host": [
+						"{{gacha_url_player}}"
+					],
+					"path": [
+						"collection",
+						"available"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK get_available_gacha",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 200",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response should be an object\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an(\"object\");",
+							"",
+							"    if (Object.keys(jsonData).length > 0) {",
+							"        pm.test(\"Object should have required fields\", function () {",
+							"            pm.expect(jsonData).to.have.property(\"name\");",
+							"            pm.expect(jsonData).to.have.property(\"description\");",
+							"            pm.expect(jsonData).to.have.property(\"name_img\");",
+							"            pm.expect(jsonData).to.have.property(\"rarity\");",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_player}}/collection/available/12",
+					"host": [
+						"{{gacha_url_player}}"
+					],
+					"path": [
+						"collection",
+						"available",
+						"12"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO get_available_gacha",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 403",
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Token is missing!\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_player}}/collection/available/12",
+					"host": [
+						"{{gacha_url_player}}"
+					],
+					"path": [
+						"collection",
+						"available",
+						"12"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK roll_gacha",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 200",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response should contain successful roll message and gacha info\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"message\");",
+							"    pm.expect(jsonData.message).to.include(\"successfully rolled gacha\");",
+							"",
+							"    pm.expect(jsonData).to.have.property(\"gacha_info\");",
+							"    const gachaInfo = jsonData.gacha_info;",
+							"    pm.expect(gachaInfo).to.have.property(\"name\");",
+							"    pm.expect(gachaInfo.name).to.be.a(\"string\");",
+							"    pm.expect(gachaInfo).to.have.property(\"description\");",
+							"    pm.expect(gachaInfo.description).to.be.a(\"string\");",
+							"    pm.expect(gachaInfo).to.have.property(\"rarity\");",
+							"    pm.expect(gachaInfo.rarity).to.be.oneOf([",
+							"        \"Common\",",
+							"        \"Uncommon\",",
+							"        \"Rare\",",
+							"        \"Super Rare\",",
+							"        \"Legendary\",",
+							"    ]);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_player}}/roll",
+					"host": [
+						"{{gacha_url_player}}"
+					],
+					"path": [
+						"roll"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO roll_gacha",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 403",
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Token is missing!\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{gacha_url_player}}/roll",
+					"host": [
+						"{{gacha_url_player}}"
+					],
+					"path": [
+						"roll"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
