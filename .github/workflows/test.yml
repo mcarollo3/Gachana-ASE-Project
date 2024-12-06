@@ -50,7 +50,7 @@ jobs:
       run: |
         newman run docs/integrationTests/GachanaIntegrationTests.postman_collection.json \
           --environment docs/integrationTests/env.postman_environment.json \
-          --insecure
+          --insecure \
           --delay-request 1000 \
           --timeout 60000 \
           --reporters cli
