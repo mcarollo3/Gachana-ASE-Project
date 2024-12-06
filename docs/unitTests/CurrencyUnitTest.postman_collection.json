@@ -1,0 +1,336 @@
+{
+	"info": {
+		"_postman_id": "62947f66-77ef-4b4d-bd88-b4b905f255cf",
+		"name": "Currency Unit Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39572870",
+		"_collection_link": "https://gachana.postman.co/workspace/Gachana-Workspace~ccd2cd2e-8e57-46e0-9577-e2befa5a4699/collection/39718315-62947f66-77ef-4b4d-bd88-b4b905f255cf?action=share&source=collection_link&creator=39572870"
+	},
+	"item": [
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Assumendo che il token sia restituito nel corpo della risposta come \"token\"\r",
+							"const jsonData = pm.response.json();\r",
+							"\r",
+							"// Salva il token come variabile globale o d'ambiente\r",
+							"pm.environment.set(\"jwtTokenPlayer\", jsonData.token); // Usa pm.globals.set() per una variabile globale\r",
+							"\r",
+							"// Facoltativo: Stampa il token nella console di Postman per debugging\r",
+							"console.log(\"JWT Token salvato:\", jsonData.token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"player\",\r\n    \"psw\":\"prova\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:5000/login",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK buy_currency",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful currency purchase (status 200)",
+							"pm.test(\"Should return 200 for successful currency purchase\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"message\").that.includes(\"added to your wallet successfully!\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"amount\": 10.00,\r\n    \"card_number\": \"1234567812345678\",\r\n    \"expiry_date\": \"12/25\",\r\n    \"cvv\": \"123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{currency_url_player}}/buy_currency",
+					"host": [
+						"{{currency_url_player}}"
+					],
+					"path": [
+						"buy_currency"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO buy_currency",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for invalid amount (status 400)",
+							"pm.test(\"Should return 400 if the amount is not positive\", function () {",
+							"    pm.response.to.have.status(400);",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Invalid amount. Must be greater than zero.\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"amount\": -10.00,\r\n    \"card_number\": \"1234567812345678\",\r\n    \"expiry_date\": \"12/25\",\r\n    \"cvv\": \"123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{currency_url_player}}/buy_currency",
+					"host": [
+						"{{currency_url_player}}"
+					],
+					"path": [
+						"buy_currency"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK get_transactions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful retrieval of transactions (status 200)",
+							"pm.test(\"Should return 200 with transaction data if the user has transactions\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('array').that.is.not.empty;",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{currency_url_player}}/transactions",
+					"host": [
+						"{{currency_url_player}}"
+					],
+					"path": [
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO get_transactions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 403",
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Token is missing!\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{currency_url_player}}/transactions",
+					"host": [
+						"{{currency_url_player}}"
+					],
+					"path": [
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK wallet",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful wallet retrieval",
+							"pm.test(\"Status code is 200 when wallet is retrieved\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('array');",
+							"    pm.expect(jsonData.length).to.equal(1); // Ensure exactly one wallet record",
+							"    pm.expect(jsonData[0]).to.have.property('wallet');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{currency_url_player}}/wallet",
+					"host": [
+						"{{currency_url_player}}"
+					],
+					"path": [
+						"wallet"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO wallet",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 403",
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Token is missing!\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{currency_url_player}}/wallet",
+					"host": [
+						"{{currency_url_player}}"
+					],
+					"path": [
+						"wallet"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
