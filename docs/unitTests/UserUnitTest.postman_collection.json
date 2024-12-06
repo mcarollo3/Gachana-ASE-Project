@@ -1,0 +1,621 @@
+{
+	"info": {
+		"_postman_id": "f59ad9f7-49b0-4cb4-84c2-96801dfb2d5c",
+		"name": "User Unit Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39572870",
+		"_collection_link": "https://gachana.postman.co/workspace/Gachana-Workspace~ccd2cd2e-8e57-46e0-9577-e2befa5a4699/collection/39718315-f59ad9f7-49b0-4cb4-84c2-96801dfb2d5c?action=share&source=collection_link&creator=39572870"
+	},
+	"item": [
+		{
+			"name": "OK signup",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 201",
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"// Parse the request body to extract the username",
+							"var requestJson = pm.request.body.raw ? JSON.parse(pm.request.body.raw) : {};",
+							"var username = requestJson.username; // Adjust this according to the actual structure of your request body",
+							"",
+							"pm.test(\"Extracted username matches expected value in response\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson.message).to.include(`User ${username} added!`);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiQWRtaW4iLCJleHAiOjE3MzE2MDAwMzl9.fnYeO4BcoDjvp_n4q6M5zx5slIWcguxYVlIIWxsKgSc",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"marco2\",\r\n    \"psw\": \"proVa2prov@\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/signup",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO signup",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 400",
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Password must be at least 8 characters long.\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiQWRtaW4iLCJleHAiOjE3MzE2MDAwMzl9.fnYeO4BcoDjvp_n4q6M5zx5slIWcguxYVlIIWxsKgSc",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"marco\",\r\n    \"psw\": \"prova\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/signup",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK login player",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Assumendo che il token sia restituito nel corpo della risposta come \"token\"\r",
+							"const jsonData = pm.response.json();\r",
+							"\r",
+							"// Salva il token come variabile globale o d'ambiente\r",
+							"pm.environment.set(\"jwtTokenPlayer\", jsonData.token); // Usa pm.globals.set() per una variabile globale\r",
+							"\r",
+							"// Facoltativo: Stampa il token nella console di Postman per debugging\r",
+							"console.log(\"JWT Token salvato:\", jsonData.token);\r",
+							"\r",
+							"// Test for successful login (status 200)\r",
+							"pm.test(\"Should return status 200 for successful login\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property(\"token\");\r",
+							"    pm.expect(jsonData.token).to.be.a(\"string\").that.is.not.empty;\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"player\",\r\n    \"psw\":\"prova\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/login",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO login player",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for invalid credentials (status 401)\r",
+							"pm.test(\"Should return 401 for invalid credentials\", function () {\r",
+							"    pm.response.to.have.status(401);\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property(\"message\").that.includes(\"Invalid credentials\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"player3\",\r\n    \"psw\":\"prova\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/login",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK logout player",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 200",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Logged out successfully!\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/logout",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO logout player",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 400",
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Token is already logged out!\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/logout",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login player2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Assumendo che il token sia restituito nel corpo della risposta come \"token\"\r",
+							"const jsonData = pm.response.json();\r",
+							"\r",
+							"// Salva il token come variabile globale o d'ambiente\r",
+							"pm.environment.set(\"jwtTokenPlayer2\", jsonData.token); // Usa pm.globals.set() per una variabile globale\r",
+							"\r",
+							"// Facoltativo: Stampa il token nella console di Postman per debugging\r",
+							"console.log(\"JWT Token salvato:\", jsonData.token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"player2\",\r\n    \"psw\":\"prova\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/login",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK update",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Endpoint responds with status 200 for successful account update",
+							"pm.test(\"Endpoint responds with status 200 for successful update\", function () {",
+							"    pm.expect(pm.response.code).to.eql(200);",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"message\", \"User information updated successfully\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"player\",\r\n    \"psw\": \"prova1Prov@\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/update",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO update",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 400",
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Password must be at least 8 characters long.\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"player\",\r\n    \"psw\": \"prova\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/update",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK delete",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Endpoint responds with status 200 for successful account deletion",
+							"pm.test(\"Endpoint responds with status 200 for successful deletion\", function () {",
+							"    pm.expect(pm.response.code).to.eql(200);",
+							"});",
+							"",
+							"// Test: Successful account deletion should return the correct success message",
+							"pm.test(\"Response should confirm user account deletion\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"message\", \"User account deleted successfully!\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/delete",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"delete"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO delete",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 403",
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Token is missing!\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/delete",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"delete"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
