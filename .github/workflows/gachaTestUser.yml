@@ -1,0 +1,62 @@
+name: Gacha Unit Test
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v2
+
+    - name: Start application with Docker Compose
+      run: |
+        docker compose -f docker-compose.test.yml up -d --build
+
+    - name: Wait for services
+      run: |
+        echo "Waiting for services to be ready..."
+        sleep 15
+    
+    - name: Add self-signed certificates
+      run: |
+        cat ./secrets/https/gateway/admin/cert.pem > combined-certs.pem
+        cat ./secrets/https/gateway/player/cert.pem > combined-certs.pem
+        cat ./secrets/https/user/cert.pem > combined-certs.pem
+        cat ./secrets/https/gacha/cert.pem > combined-certs.pem
+        cat ./secrets/https/currency/cert.pem > combined-certs.pem
+        cat ./secrets/https/market/cert.pem > combined-certs.pem
+        cat ./secrets/db/https/user_db/cert.pem > combined-certs.pem
+        cat ./secrets/db/https/gacha_db/cert.pem > combined-certs.pem
+        cat ./secrets/db/https/market_db/cert.pem > combined-certs.pem
+        cat ./secrets/db/https/currency_db/cert.pem > combined-certs.pemc
+        sudo cp combined-certs.pem /usr/local/share/ca-certificates/combined-certs.crt
+        sudo update-ca-certificates
+
+    - name: Install Newman
+      run: |
+        npm install -g newman
+
+    - name: Run User Postman tests
+      env:
+        BASE_URL: "http://localhost"
+      run: |
+        newman run docs/unitTests/GachaUnitTest.postman_collection.json \
+          --environment docs/unitTests/unitTestenvs.postman_environment.json \
+          --insecure \
+          --delay-request 1000 \
+          --timeout 60000 \
+          --reporters cli
+
+    - name: Stop application
+      if: always()
+      run: |
+        docker compose down
+
