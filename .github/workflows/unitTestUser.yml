@@ -1,4 +1,4 @@
-name: Test API Gachana
+name: User Unit Test
 
 on:
   push:
@@ -48,7 +48,7 @@ jobs:
       env:
         BASE_URL: "http://localhost"
       run: |
-        newman run docs/unitTests/UserUnitTests.postman_collection.json \
+        newman run docs/unitTests/UserUnitTest.postman_collection.json \
           --environment docs/unitTests/unitTestenvs.postman_environment.json \
           --insecure \
           --delay-request 1000 \
