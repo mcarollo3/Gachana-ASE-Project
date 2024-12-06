@@ -38,6 +38,7 @@ jobs:
           --delay-request 1000 \
           --timeout 60000 \
           --reporters cli
+          --insecure
 
     - name: Stop application
       if: always()
