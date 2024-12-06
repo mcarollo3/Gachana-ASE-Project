@@ -469,13 +469,14 @@ def accept_offer():
             cert=(CERT_FILE, KEY_FILE),
         )
 
-    if adminLogin.status_code != 200:
-        return (
-            jsonify(adminLogin.json()),
-            adminLogin.status_code,
-        )
+    if mock_login is None:
+        if adminLogin.status_code != 200:
+            return (
+                jsonify(adminLogin.json()),
+                adminLogin.status_code,
+            )
 
-    tokenAdmin = adminLogin.json().get("token")
+        tokenAdmin = adminLogin.json().get("token")
 
     query_get_rejected_offers = """
     SELECT user_id, offer_value 
@@ -534,7 +535,7 @@ def accept_offer():
     connection.close()
 
     if mock_collection_add:
-        addGachaToBuyer = mock_collection_add
+        addGachaToBuyer = mock_collection_add()
     else:
         addGachaToBuyer = make_request(
             GACHA_URL + "/collection/add",

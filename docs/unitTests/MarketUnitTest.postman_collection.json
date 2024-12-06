@@ -1,0 +1,915 @@
+{
+	"info": {
+		"_postman_id": "739bfb16-37d6-4b72-9c6f-37baef42c215",
+		"name": "Market Unit Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39572870",
+		"_collection_link": "https://gachana.postman.co/workspace/Gachana-Workspace~ccd2cd2e-8e57-46e0-9577-e2befa5a4699/collection/39718315-739bfb16-37d6-4b72-9c6f-37baef42c215?action=share&source=collection_link&creator=39572870"
+	},
+	"item": [
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Assumendo che il token sia restituito nel corpo della risposta come \"token\"\r",
+							"const jsonData = pm.response.json();\r",
+							"\r",
+							"// Salva il token come variabile globale o d'ambiente\r",
+							"pm.environment.set(\"jwtTokenPlayer\", jsonData.token); // Usa pm.globals.set() per una variabile globale\r",
+							"\r",
+							"// Facoltativo: Stampa il token nella console di Postman per debugging\r",
+							"console.log(\"JWT Token salvato:\", jsonData.token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"player\",\r\n    \"psw\":\"prova\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:5000/login",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK list",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 200",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"No auctions available.\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{market_url_player}}/list",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO list",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 403",
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Token is missing!\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{market_url_player}}/list",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK new-auction",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 201",
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Item listed for sale.\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"gacha_id\": 3,\r\n    \"end_date\": \"2024-12-20\",\r\n    \"init_value\": 100.00\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{market_url_player}}/new-auction",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"new-auction"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO new-auction",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 400",
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"End date is required.\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"gacha_id\": 3,\r\n    \"init_value\": 100.00\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{market_url_player}}/new-auction",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"new-auction"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "logout player",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/logout",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login player2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Assumendo che il token sia restituito nel corpo della risposta come \"token\"\r",
+							"const jsonData = pm.response.json();\r",
+							"\r",
+							"// Salva il token come variabile globale o d'ambiente\r",
+							"pm.environment.set(\"jwtTokenPlayer2\", jsonData.token); // Usa pm.globals.set() per una variabile globale\r",
+							"\r",
+							"// Facoltativo: Stampa il token nella console di Postman per debugging\r",
+							"console.log(\"JWT Token salvato:\", jsonData.token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"player2\",\r\n    \"psw\":\"prova\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/login",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK new-bid",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 200",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Offer placed successfully.\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"market_id\": 1,\r\n    \"offer_value\": 120\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{market_url_player}}/new-bid",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"new-bid"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "logout player2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/logout",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login player",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Assumendo che il token sia restituito nel corpo della risposta come \"token\"\r",
+							"const jsonData = pm.response.json();\r",
+							"\r",
+							"// Salva il token come variabile globale o d'ambiente\r",
+							"pm.environment.set(\"jwtTokenPlayer\", jsonData.token); // Usa pm.globals.set() per una variabile globale\r",
+							"\r",
+							"// Facoltativo: Stampa il token nella console di Postman per debugging\r",
+							"console.log(\"JWT Token salvato:\", jsonData.token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"player\",\r\n    \"psw\":\"prova\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{user_url_player}}/login",
+					"host": [
+						"{{user_url_player}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO new-bid",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 404",
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Market not found.\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"market_id\": 3,\r\n    \"offer_value\": 120\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{market_url_player}}/new-bid",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"new-bid"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK offers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful offer retrieval",
+							"pm.test(\"Status code is 200 and offers retrieved successfully\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"market_id\");",
+							"    pm.expect(jsonData).to.have.property(\"offers\").that.is.an(\"array\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{market_url_player}}/1/offers",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"1",
+						"offers"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO offers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 404",
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Market not found.\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{market_url_player}}/2/offers",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"2",
+						"offers"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK accept",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful offer acceptance",
+							"pm.test(\"Status code is 200 and offer accepted successfully\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"message\", \"Offer accepted successfully.\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"market_id\": 1,\r\n    \"buyer_id\": 3\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{market_url_player}}/accept",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"accept"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO accept",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 400",
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Market ID and buyer ID are required.\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"market_id\": \"market_id\",\n    \"buyer_id\": \"buyer_id\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{market_url_player}}/accept",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"accept"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OK history",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test for successful response (Status 200)",
+							"pm.test(\"Status code is 200 and returns transaction history\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('array');",
+							"    pm.expect(jsonData.length).to.be.above(0);",
+							"});",
+							"",
+							"// Test for valid token and response format (should return an array of transactions)",
+							"pm.test(\"Response is an array with the correct structure\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    // Ensure each transaction in the response contains expected fields",
+							"    jsonData.forEach(transaction => {",
+							"        pm.expect(transaction).to.have.property(\"user_seller_id\");",
+							"        pm.expect(transaction).to.have.property(\"user_buyer_id\");",
+							"        pm.expect(transaction).to.have.property(\"gacha_value\");",
+							"        pm.expect(transaction).to.have.property(\"id_gacha\");",
+							"        pm.expect(transaction).to.have.property(\"date\");",
+							"    });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtTokenPlayer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{market_url_player}}/history",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"history"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "NO history",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check the status code is 403",
+							"pm.test(\"Status code is 403\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"// Check that the response body matches the expected JSON object",
+							"pm.test(\"Response body matches expected JSON\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.deep.equal({ \"message\": \"Token is missing!\" });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{market_url_player}}/history",
+					"host": [
+						"{{market_url_player}}"
+					],
+					"path": [
+						"history"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
