@@ -24,6 +24,21 @@ jobs:
       run: |
         echo "Waiting for services to be ready..."
         sleep 15
+    
+    - name: Add self-signed certificates
+      run: |
+        cat ./secrets/https/gateway/admin/cert.pem > combined-certs.pem
+        cat ./secrets/https/gateway/player/cert.pem > combined-certs.pem
+        cat ./secrets/https/user/cert.pem > combined-certs.pem
+        cat ./secrets/https/gacha/cert.pem > combined-certs.pem
+        cat ./secrets/https/currency/cert.pem > combined-certs.pem
+        cat ./secrets/https/market/cert.pem > combined-certs.pem
+        cat ./secrets/db/https/user_db/cert.pem > combined-certs.pem
+        cat ./secrets/db/https/gacha_db/cert.pem > combined-certs.pem
+        cat ./secrets/db/https/market_db/cert.pem > combined-certs.pem
+        cat ./secrets/db/https/currency_db/cert.pem > combined-certs.pemc
+        sudo cp combined-certs.pem /usr/local/share/ca-certificates/combined-certs.crt
+        sudo update-ca-certificates
 
     - name: Install Newman
       run: |
